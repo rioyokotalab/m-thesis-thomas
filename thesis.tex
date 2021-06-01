@@ -1,0 +1,190 @@
+\documentclass[a4paper,11pt,oneside,openright]{book}
+% https://tug.org/pracjourn/2008-1/mori/mori.pdf
+% 
+%%%%%%%%%%%%% DO NOT DELETE BELOW %%%%%%%%%%%%%%%%
+\makeatletter
+\def\clap#1{\hbox to 0pt{\hss #1\hss}}%
+\def\ligne#1{%
+  \hbox to \hsize{%
+    \vbox{\centering #1}}}%
+\def\haut#1#2#3{%
+  \hbox to \hsize{%
+    \rlap{\vtop{\raggedright #1}}%
+    \hss
+    \clap{\vtop{\centering #2}}%
+    \hss
+    \llap{\vtop{\raggedleft #3}}}}%
+\def\bas#1#2#3{%
+  \hbox to \hsize{%
+    \rlap{\vbox{\raggedright #1}}%
+    \hss
+    \clap{\vbox{\centering #2}}%
+    \hss
+    \llap{\vbox{\raggedleft #3}}}}%
+\def\svb#1#2{%
+  \hbox to \hsize{%
+    \hbox to 0.5\hsize{\hfil #1}%
+    \quad
+    \hbox to 0.4\hsize{#2 \hfil}}}%
+\def\maketitle{%
+  \thispagestyle{empty}\vbox to \vsize{%
+    \haut{}{\LARGE \textbf{\@thesistype}}{}
+    \vfill
+    \ligne{\Huge \@title}
+    \vspace{1cm}
+    \ligne{\LARGE \@author}
+    \bigskip
+    \ligne{\Large \@studentid}
+    \vfill
+    \haut{}{\Large \@affiliation}{}
+    \vfill
+    \ligne{\Large Advisor: \@supervisorname}
+    \ifx\@dsupervisor\@empty\else
+    \medskip \svb{\Large \@dsupervisorname}{\Large \@dsupervisor}
+    \fi
+    \vfill
+    \bas{}{\large \@date}{}
+  }%
+  % \cleardoublepage
+}
+\def\date#1{\def\@date{#1}}
+\def\author#1{\def\@author{#1}}
+\def\studentid#1{\def\@studentid{#1}}
+\def\title#1{\def\@title{#1}}
+\def\supervisor#1{\def\@supervisor{#1}}
+\def\dsupervisor#1{\def\@dsupervisor{#1}}
+\def\supervisorname#1{\def\@supervisorname{#1}}
+\def\dsupervisorname#1{\def\@dsupervisorname{#1}}
+\def\affiliation#1{\def\@affiliation{#1}}
+\def\thesistype#1{\def\@thesistype{#1}}
+\title{}
+\author{}
+\date{}
+\supervisor{}
+\dsupervisor{}
+\supervisorname{}
+\dsupervisorname{}
+\affiliation{}
+\thesistype{}
+\makeatother
+% 
+% \pagestyle{plain}
+\supervisorname{Rio Yokota}
+
+% \dsupervisorname{副指導教員}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+\thesistype{Master's Degree Thesis}
+\title{Iterative Refinement with \\ Hierarchical Low-Rank Preconditioners \\ using Mixed Precision}
+\author{Thomas Spendlhofer}
+\studentid{19M38159}
+\affiliation{
+  Tokyo Institute of Technology \\
+  School of Computing \\
+  Department of Computer Science
+}
+\date{July 2020}
+% \supervisor{Dr. Rio Yokota}
+
+% User defined packages
+\usepackage[left=30mm, right=30mm, top=25mm, bottom=25mm]{geometry}
+\usepackage{fancyhdr}
+\usepackage[utf8]{inputenc}
+\usepackage{caption}
+\usepackage{import}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+\usepackage{float}
+\usepackage{manfnt}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage[bookmarks]{hyperref}
+\usepackage{enumitem}
+\usepackage{subcaption}
+\usepackage{multirow}
+\usepackage{bigstrut}
+\usepackage{url}
+\usepackage[bottom]{footmisc}
+\usepackage{bm}
+\usepackage{chngcntr}
+\counterwithout{equation}{section}
+
+\definecolor{solarized@base03}{HTML}{002B36}
+\definecolor{solarized@base02}{HTML}{073642}
+\definecolor{solarized@base01}{HTML}{586e75}
+\definecolor{solarized@base00}{HTML}{657b83}
+\definecolor{solarized@base0}{HTML}{839496}
+\definecolor{solarized@base1}{HTML}{93a1a1}
+\definecolor{solarized@base2}{HTML}{EEE8D5}
+\definecolor{solarized@base3}{HTML}{FDF6E3}
+\definecolor{solarized@yellow}{HTML}{B58900}
+\definecolor{solarized@orange}{HTML}{CB4B16}
+\definecolor{solarized@red}{HTML}{DC322F}
+\definecolor{solarized@magenta}{HTML}{D33682}
+\definecolor{solarized@violet}{HTML}{6C71C4}
+\definecolor{solarized@blue}{HTML}{268BD2}
+\definecolor{solarized@cyan}{HTML}{2AA198}
+\definecolor{solarized@green}{HTML}{859900}
+
+\lstset{language=C++,
+  basicstyle=\footnotesize\ttfamily,
+  numbers=left,
+  numberstyle=\footnotesize,
+  tabsize=2,
+  breaklines=true,
+  escapeinside={@}{@},
+  numberstyle=\tiny\color{solarized@base01},
+  keywordstyle=\color{solarized@green},
+  stringstyle=\color{solarized@cyan}\ttfamily,
+  identifierstyle=\color{solarized@blue},
+  commentstyle=\color{solarized@base01},
+  emphstyle=\color{solarized@red},
+  frame=single,
+  rulecolor=\color{solarized@base2},
+  rulesepcolor=\color{solarized@base2},
+  showstringspaces=false
+}
+\DeclareUnicodeCharacter{00A0}{ }
+\DeclareUnicodeCharacter{FFFD}{ }
+
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\vecT}[1]{\vec{#1}^{\,T}}
+
+\pagestyle{plain}
+
+\setcounter{tocdepth}{4}
+\setcounter{secnumdepth}{4}
+
+\begin{document}
+\frontmatter
+\maketitle
+%\import{thesis/}{0_abstract.tex}
+\tableofcontents
+\listofalgorithms
+\listoffigures
+\listoftables
+\lstlistoflistings
+
+\mainmatter
+\import{chapters/1_introduction}{1_0_introduction.tex}
+\import{chapters/2_preliminaries}{2_0_preliminaries.tex}
+%\import{thesis/}{2_0_preliminaries.tex}
+%\import{thesis/}{3_0_block_lowrank_matrices.tex}
+%\import{thesis/}{4_0_qr_decomposition_of_blr_matrices.tex}
+%\import{thesis/}{5_0_parallel_qr_decomposition_of_blr_matrices.tex}
+%\import{thesis/}{6_0_implementation_details.tex}
+%\import{thesis/}{7_0_results.tex}
+%\import{thesis/}{8_0_conclusion.tex}
+%\import{thesis/}{9_0_acknowledgement.tex}
+
+\backmatter
+\bibliography{references} 
+\bibliographystyle{plain}
+\end{document}
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "thesis"
+%%% End: 

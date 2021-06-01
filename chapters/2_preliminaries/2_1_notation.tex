@@ -1,0 +1,31 @@
+\section{Notation}
+\label{chap:notation}
+
+
+\begin{tabular}{ll}
+  $A$ & Capital letters denote matrices \\
+  $b$ & Lower case letters denote column vectors \\
+  $A(i,j)$ & $j$-th element on the $i$-th row of $A$ \\
+  $b(i)$ & $i$-th element of $b$ \\
+  $\norm{A}_p$ & $p$-norm of matrix $A$ \\
+  $\norm{b}_p$ & $p$-norm of vector $b$ \\
+  $\kappa_{p}(A)$ & Norm-wise condition number of $A$ with respect to the $p$-norm \\
+  $cond(A)$ & Component-wise condition number of $A$ \\
+  $cond(A, x)$ & Component-wise condition number of the linear system $Ax=b$ \\
+  $A^{-1}$ & Inverse of matrix $A$ \\
+\end{tabular}
+\vspace{0.5cm}
+
+\noindent Regarding the calculation of the condition numbers, he following formula is given for the norm-wise condition number by \cite{higham_accuracy_2002}:
+\begin{equation}
+\kappa_{p}(A) = \norm{A^{-1}}_p\norm{A}_p
+\end{equation}
+
+\noindent Formulas for the component-wise condition numbers are provided by \cite{skeel_scaling_1979}:
+\begin{equation}
+cond(A) = \norm{|A^{-1}||A|}_\infty \leq \kappa_{\infty}(A)
+\end{equation}
+\begin{equation}
+cond(A,x) = \frac{\norm{|A^{-1}||A||x|}_\infty}{\norm{x}_\infty}
+\end{equation}
+\noindent where $|A| = |A(i,j)|$ and $|x| = |x(i)|$. These condition numbers represent how sensitive the solution of the linear system $Ax=b$ reacts to small norm-wise and component-wise perturbations \cite{higham_accuracy_2002}. 
