@@ -1,22 +1,37 @@
 \section{Notation}
-\label{chap:notation}
+\label{sec:notation}
 
 
 \begin{tabular}{ll}
+  $\mathbb{R}$ & Space of real numbers \\
+  $\mathbb{R}^{m}$ & Space of vectors of $m$ elements \\
+  $\mathbb{R}^{m \times n}$ & Space of matrices with $m$ rows and $n$ columns \\
   $A$ & Capital letters denote matrices \\
   $b$ & Lower case letters denote column vectors \\
-  $A(i,j)$ & $j$-th element on the $i$-th row of $A$ \\
-  $b(i)$ & $i$-th element of $b$ \\
+  $A_{i,j}$ & $j$-th element on the $i$-th row of $A$ \\
+  $b_{i}$ & $i$-th element of $b$ \\
   $\norm{A}_p$ & $p$-norm of matrix $A$ \\
   $\norm{b}_p$ & $p$-norm of vector $b$ \\
   $\kappa_{p}(A)$ & Norm-wise condition number of $A$ with respect to the $p$-norm \\
   $cond(A)$ & Component-wise condition number of $A$ \\
   $cond(A, x)$ & Component-wise condition number of the linear system $Ax=b$ \\
   $A^{-1}$ & Inverse of matrix $A$ \\
+  $A^T$    & Transpose of matrix $A$ \\
+  $I$      & Identity matrix  \\
+  $u$      & unit roundoff of floating-point precision \\
+  $\hat{}\;$, e.g. $\hat{x}$ & denotes a calculated quantity (in floating point precision) \\
+  $\mathcal{O}$ &
 \end{tabular}
 \vspace{0.5cm}
 
-\noindent Regarding the calculation of the condition numbers, he following formula is given for the norm-wise condition number by \cite{higham_accuracy_2002}:
+\noindent A linear system is denoted by
+\begin{equation}
+\label{eqn:linear_system}
+    Ax=b
+\end{equation}
+\noindent where $A \in \mathbb{R}^{n \times n}$ is called the \textit{coefficient matrix}, $b \in \mathbb{R}^{n}$ is the \textit{right-hand side} vector and $x \in \mathbb{R}^{n}$ is the \textit{vector of unknowns}. The task of solving a linear system is then reduced to finding a vector $x$ for a given input $A$ and $b$ such that Equation~\hyperref[eqn:linear_system]{\ref{eqn:linear_system}} is satisfied.
+
+\noindent Regarding the calculation of the condition numbers for such a system, the following formula is given for the norm-wise condition number by \cite{higham_accuracy_2002}:
 \begin{equation}
 \kappa_{p}(A) = \norm{A^{-1}}_p\norm{A}_p
 \end{equation}
@@ -28,4 +43,4 @@ cond(A) = \norm{|A^{-1}||A|}_\infty \leq \kappa_{\infty}(A)
 \begin{equation}
 cond(A,x) = \frac{\norm{|A^{-1}||A||x|}_\infty}{\norm{x}_\infty}
 \end{equation}
-\noindent where $|A| = |A(i,j)|$ and $|x| = |x(i)|$. These condition numbers represent how sensitive the solution of the linear system $Ax=b$ reacts to small norm-wise and component-wise perturbations \cite{higham_accuracy_2002}. 
+\noindent where $|A| = |A_{i,j}|$ and $|x| = |x_{i}|$. These condition numbers represent how sensitive the solution of the linear system reacts to small norm-wise and component-wise perturbations \cite{higham_accuracy_2002}. 

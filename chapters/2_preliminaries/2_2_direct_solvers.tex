@@ -1,0 +1,166 @@
+\section{Direct Solvers}
+\label{sec:direct_solvers}
+
+According to \cite{golub_matrix_2013}, most traditional solving techniques for matrices involve the conversion of the given square linear system into a triangular system with the same solution. This is due to the fact, that the solution is readily available in the case that $A$ is either lower or upper triangular. In the case of a lower triangular matrix, the system is reduced to the following form:
+\begin{equation}
+  \left[
+    \begin{array}{cccc}
+      l_{1,1} &  &  & \\
+      l_{2,1} & l_{2,2} &  &  \\
+      \vdots& \vdots & \ddots &  \\
+      l_{n,1} & l_{n,2} & \cdots & l_{n,n}\\
+    \end{array}
+  \right] \cdot
+  \left[
+    \begin{array}{c}
+      x_{1} \\
+      x_{2} \\
+      \vdots \\
+      x_{n}  \\
+    \end{array}
+  \right] = 
+  \left[
+    \begin{array}{c}
+      b_{1} \\
+      b_{2} \\
+      \vdots \\
+      b_{n}  \\
+    \end{array}
+  \right] 
+\end{equation}
+
+\noindent Given that the diagonal elements are non-zero, that is $l_{i,i} \neq 0$, with $i \in [1,2, \dots, n]$, the unknowns can be determined sequentially:
+\begin{equation}
+\begin{aligned}
+    x_1 & =  b_1/l_{1,1} \\
+    x_2 & =  (b_2-l_{2,1}\cdot x_1)/l_{2,2} \\
+    & \;\;\vdots 
+\end{aligned}
+\end{equation}
+
+\noindent This process is known as \textit{forward substitution} and the general procedure for solving the $i$th equation is given by \cite{golub_matrix_2013} as:
+\begin{equation}
+    x_i=\left. \left( b_i-\sum_{j=1}^{i-1}l_{i,j}x_j\right) \middle/ l_{i,i} \right.
+\end{equation}
+
+\noindent Equivalently, a upper triangular system takes the form:
+\begin{equation}
+  \left[
+    \begin{array}{cccc}
+      u_{1,1} & u_{1,2} & \cdots & u_{1,n} \\
+      & u_{2,2} & \cdots & u_{n,n} \\
+      &  & \ddots & \vdots \\
+      & & & u_{n,n}\\
+    \end{array}
+  \right] \cdot
+  \left[
+    \begin{array}{c}
+      x_{1} \\
+      x_{2} \\
+      \vdots \\
+      x_{n}  \\
+    \end{array}
+  \right] = 
+  \left[
+    \begin{array}{c}
+      b_{1} \\
+      b_{2} \\
+      \vdots \\
+      b_{n}  \\
+    \end{array}
+  \right] 
+\end{equation}
+
+\noindent Such a system is analogously solved (but in a bottom-up fashion) by a process called \textit{backward substitution}, by a slightly modified formula (see \cite{golub_matrix_2013}):
+\begin{equation}
+    x_i=\left. \left( b_i-\sum_{j=i+11}^{n}u_{i,j}x_j\right) \middle/ u_{i,i} \right.
+\end{equation}
+
+\noindent Following this approach, triangular systems can be solved in $\mathcal{O}(n^2)$ computations and many factorization techniques aim to reduce a dense matrix $A$ to a triangular form in order to enable easy solving.
+
+\subsection{LU Factorization}
+\label{sec:dlu_factorization}
+Gaussian elimination is often said to be the most fundamental and wide-spread algorithm for solving linear systems \cite{greenbaum_iterative_1997}. It is centered around the idea of converting a system $Ax=b$ into an equivalent triangular system by taking appropriate linear combinations of the equations \cite{golub_matrix_2013}. The LU factorization can be regarded as an "high-level" algebraic description of the Gaussian elimination process, resulting in an unit lower triangular matrix $L$ and an upper diagonal matrix $U$ as illustrated in Figure~\hyperref[fig:lu_decomposition]{\ref{fig:lu_decomposition}}. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.75\linewidth]{figures/lu.pdf}
+    \caption{LU decomposition of a square dense matrix $A$}
+    \label{fig:lu_decomposition}
+\end{figure}
+
+\noindent Algorithm~\hyperref[alg:lu]{\ref{alg:lu}} shows one version of how to obtain such a factorization via Gaussian elimination, other variants and further details are available in various textbooks (see \cite{strang_introduction_2009}, \cite{golub_matrix_2013} or \cite{singh_linear_2014} for reference). In this context, however, it is sufficient to know that $U$ is the direct result of the forward elimination, while $L$ is able to invert that whole process, taking $U$ back to $A$ \cite{strang_introduction_2009}. As a result, after the factorization $A=LU$ has been obtained, the solution to the original $Ax=b$ problem can be found by two triangular solves corresponding to:
+\begin{equation}
+    Ly=b \text{ and } Ux=y 	\;\;\; \Rightarrow \;\;\; Ax=LUx=Ly=b
+\end{equation}
+
+\begin{algorithm}[h]
+  \caption{LU-factorization via Gaussian Elimination}
+  \label{alg:lu}
+  \SetAlgoLined
+  \KwIn{non-singular matrix $A \in \mathbb{R}^{n \times n}$}
+  \KwOut{\\ lower triangular matrix $L \in \mathbb{R}^{n \times n}$ \\
+  upper triangular matrix $U\in \mathbb{R}^{n \times n}$\\
+  \hrulealg}
+  $U=A$, $L=I$ \\
+  \For{$k = 1$ \KwTo $n-1$} {
+    \For{$i = k+1$ \KwTo $n$} {
+      $L_{i, k} = U_{i, k} / U_{k, k}$ \\
+      \For{$j = k+1$ \KwTo $n$} {
+        $U_{i, j} = U_{i, j} - L_{i, k} \cdot U_{k,j}$
+      }
+    }
+  }
+\end{algorithm}
+
+\noindent However, due to the limits of floating-point calculations, it can not be expected that the computed factors $\hat{L}$ and $\hat{U}$ are able to satisfy the equation $A=LU$ entirely, but instead we expect some error $H$ so that $A + H = \hat{L}\hat{U}$. If those factors are then used to solve a linear system via \textit{forward} and \textit{backward} substitution, the computed solution $\hat{x}$ will deviate from the exact solution $x$ in terms of the backward error (i.e. the system has been solved for a slightly different coefficient matrix $A$) by $(A+E)\hat{x}=b$ and \cite{golub_matrix_2013} provides the following bound for the error $E$ (where $u$ denotes the unit roundoff):
+\begin{equation}
+    \norm{E}_\infty \leq nu(2\norm{A}_\infty+4\normd{\hat{L}}_\infty\normd{\hat{U}}_\infty) + \mathcal{O}(u^2)
+\end{equation}
+
+
+
+\noindent The problematic term in this equation is the $\normd{\hat{L}}_\infty\normd{\hat{U}}_\infty$ part, that is not restricted by the algorithm and can (possibly) become very large. One method of introducing additional stability to Gaussian elimination is to allow for the interchange of rows or columns before the elimination step, which is commonly known as \textit{pivoting}. There exist many different strategies for pivoting (for a complete overview and error analysis of the individual variants see \cite{higham_accuracy_2002}), but \textit{partial pivoting} is most commonly found in actual implementations. This particular technique, which calculates the factorization $PA=LU$, where $P$ is a permutation matrix is denoted in Algorithm~\hyperref[alg:lu_pivoting]{\ref{alg:lu_pivoting}}. It enforces row interchanges based on the largest element of each column, hence assuring that the elements of $\hat{L}$ are bounded by one. By defining a growth factor
+\begin{equation}
+    \rho = \frac{max_{i,j,k}|\hat{a}_{i,j}^{(k)}|}{\norm{A}_\infty}
+\end{equation}
+
+\noindent which involves all the elements $\hat{a}_{i,j}^{(k)}$ ($k=1,\dots, n$) that occur during the factorization, an upper bound on $\normd{\hat{U}}_\infty$ can be established:
+\begin{equation}
+    \normd{\hat{U}}_\infty \leq \rho \norm{A}_\infty
+\end{equation}
+
+\noindent Consequently the error bound solving a linear system by LU factorization with partial pivoting is expressed in \cite{golub_matrix_2013} as follows:
+\begin{equation}
+    \norm{E}_\infty \leq 6n^3\rho\norm{A}_\infty u + \mathcal{O}(u^2)
+\end{equation}
+
+\begin{algorithm}[h]
+  \caption{LU-factorization via Gaussian Elimination with partial pivoting}
+  \label{alg:lu_pivoting}
+  \SetAlgoLined
+  \KwIn{non-singular matrix $A \in \mathbb{R}^{n \times n}$}
+  \KwOut{lower triangular matrix $L \in \mathbb{R}^{n \times n}$\\
+  upper triangular matrix $U \in \mathbb{R}^{n \times n}$\\
+  permutation matrix $P \in \mathbb{R}^{n \times n}$\\
+  \hrulealg}
+  $U=A$, $L=I$, $P=I$ \\
+  find $i \geq k $ that maximizes $|u_{i,k}$\\
+  \% interchange rows \\ 
+  \For{$j = 1$ \KwTo $n$} {
+    $swap(P_{k,j}, P_{i,j})$\\
+    \If{$j>k$}{$swap(L_{k,j}, L_{i,j})$}
+    \Else{$swap(U_{k,j}, U_{i,j})$}}
+  \For{$k = 1$ \KwTo $n-1$} {
+    \For{$i = k+1$ \KwTo $n$} {
+      $L_{i, k} = U_{i, k} / U_{k, k}$ \\
+      \For{$j = k+1$ \KwTo $n$} {
+        $U_{i, j} = U_{i, j} - L_{i, k} \cdot U_{k,j}$
+      }
+    }
+  }
+\end{algorithm}
+
+\noindent Although, as noted in \cite{higham_accuracy_2002}, the upper bound for the growth factor is $\rho \leq 2^(n-1)$ (for partial pivoting), Goleb \cite{golub_matrix_2013} remark that it is extremely rare to observe serious elemental growth in Gaussian elimination with partial pivoting, concluding that the method "can be used with confidence".
+
+To simplify the notation and enable easier understanding, it will be assumed that $A$ is a non-singular matrix and any required row or column interchanges have already been applied previously to the factorization for the remainder of this thesis. In other words $A\equiv PAQ$ where $P$ and $Q$ are appropriate permutation matrices. This can be assumed without affecting the validity or generalizability of the results.
