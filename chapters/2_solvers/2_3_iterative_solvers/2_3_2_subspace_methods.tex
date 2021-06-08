@@ -1,0 +1,15 @@
+\subsection{General Subspace Methods}
+\label{sec:subspace_methods}
+
+Consider a general linear system $Ax=b$ with $A \in \mathbb{R}^{n \times n}$. The main goal of a subspace based iterative method is to extract an approximate solution to such a system from a (lower dimensional) subspace of $\mathbb{R}^n$. Let $\mathcal{K}_m$ denote such a subspace of dimension $m$, containing all the approximate \textit{candidate solutions} for the system. In order to single out a desired candidate from this space, it is necessary to impose a number of constraints $m$ that such a solution needs to fulfill. Typically, those are $m$ (independent) orthogonality conditions, applied to the residual vector $r = Ax-b$. In other words, $r$ is required to be orthogonal to $m$ linearly independent vectors which define another subspace of $\mathcal{L}_m$ of dimension $m$ such that $r \perp \mathcal{L}_m$.
+
+Thus a subspace method aims to find an approximate solution $\hat{x}\in \mathcal{K}_m$ such that $A\hat{x}-b \perp \mathcal{L}_m$. Because iterative methods usually want to exploit the knowledge of an initial guess $\iter[0]{x}$, the solution should be sought in the affine space $\iter[0]{x}+\mathcal{K}_m$ instead of the homogeneous vector space $\mathcal{K}_m$ \cite{saad_iterative_2003} and the problem reformulates to:
+\begin{equation}
+    \text{determine } \hat{x} \in \iter[0]{x}+\mathcal{K}_m\text{,}\;\;\text{  such that } A\hat{x}-b \perp \mathcal{L}_m
+\end{equation}
+
+\noindent If $\hat{x}$ is written in the form $\hat{x}=\iter[0]{x}+\delta$, and the initial residual $\iter[0]{r} = A\iter[0]{x}-b$, then the above condition becomes:
+\begin{equation}
+    \iter[0]{r} - A\delta \perp \mathcal{L}_m
+\end{equation}
+
