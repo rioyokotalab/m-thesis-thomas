@@ -1,2 +1,42 @@
 \subsection{Krylov Subspace Methods}
 \label{sec:krylov_methods}
+
+Even though the methods introduced in the previous chapter are guaranteed to converge, the restriction to a one-dimensional search space severely limits the progress they can achieve in a single iteration. Thus they might require a large number of iterations before they produce an accurate approximation of the desired solution. As a natural extension, faster progress could be expected from a larger search-space by minimizing the residual over multiple dimensions at the same time. Simultaneously, the search-space has to remain small enough in order to obtain a fast solution to the minimization process. Since there is a trade-off between them minimization cost and the number of iterations, an intuitive solution would be to create a sequence of subspaces $S$ with increasing dimensions such that:
+\begin{equation}
+    S_1 \subset \ S_2 \subset S_3 \subset \dots
+\end{equation}
+
+\noindent At each iteration $k$ of the iterative solver, the subspace $S_k$ satisfying $dim(S_k)=k$ is searched for a solution $\hat{x}$ that minimizes:
+\begin{equation}
+\label{eqn:residual}
+    f(x)= r = Ax-b
+\end{equation}
+
+\noindent Note that because $S_n=\real$, this sequence will ultimately produce the exact solution to the problem (in absence of rounding errors). However, since this would amount to more work than just solving the system directly, a good approximation should be achieved in $k$ iterations with $k \ll n$. Hence the challenge is to find such a subspace sequence that minimizes $r$ in the most optimal way. As illustrated in the one-dimensional case, the error of the approximation decreases most rapidly in the direction of the residual. Consequently it seems reasonable to choose $S_{k+1}$ at iteration $k$ so that it includes both $\iter[k]{x}$ and $\iter[k]{r}$, which guarantees that the update $\iter[k+1]{x}$ will be at least as good as the one-dimensional case \cite{golub_matrix_2013}. From $\iter[0]{x}$ as the initial guess and Equation~\hyperref[eqn:residual]{\ref{eqn:residual}} it follows that $\iter[k]{r} \in span\{\iter[k]{x},A\iter[k]{x}\}$ and the only way to satisfy this requirement is:
+\begin{equation}
+    S_k=\mathcal{K}(A,\iter[0]{r}, k) = span\{\iter[0]{r}, A\iter[0]{r}, A^2\iter[0]{r},\dots A^{k-1}\iter[0]{r}\}
+\end{equation}
+
+\noindent This kind of sequence is referred to as a Kryolov subspace and viewed from the angle of polynomial approximation, a vector $v$ in such a Krylov subspace can be expressed in general terms as a linear combination of powers of $A$ times $y$:
+\begin{equation}
+\label{eqn:poly1}
+    v = c_0y+c_1Ay+c_2A^2y+\dots+c_{m-1}A^{m-1}y
+\end{equation}
+
+\noindent In other words $v$ is a polynomial in $A$ times $y$ and by defining $p$ as a polynomial of the form $p(z) = c_0+c_qz+c_2z^2+\dots+c_{m-1}z^{m-1}$, the following, compact description can be achieved:
+\begin{equation}
+\label{eqn:poly2}
+v=p(A)y  
+\end{equation}
+
+\noindent A Krylov subspace method for solving a linear system will thus attempt to improve a initial solution $\iter[0]{x}$ based on the residual $\iter[0]{r} = b-A\iter[0]{x}$ by updating it with such a vector $v \in \mathcal{K}(A, \iter[0]{r},k)$, which corresponds to:
+\begin{equation}
+    A^{-1}b \approx \iter{x} = \iter[0]{x}+p(A)\iter[o]{r}
+\end{equation}
+
+\noindent From this point going forward, $\mathcal{K}(A, \iter[0]{r},k)$ will be simply denoted as $\mathcal{K}_k$ if there is no ambiguity. Furthermore, note that even though all Krylov subspace based techniques provide the same type of polynomial approximation, they differ in the constraints $\mathcal{L}_k$ used to build these approximation, giving rise to a number of distinct algorithm (see \cite{saad_iterative_2003} for a comprehensive overview) and only a subset will be discussed in this research.
+
+
+
+\subsubsection{Conjugate Gradient (CG)}
+\label{sec:conjugate_gradient}

@@ -174,12 +174,6 @@ f(x) = \norm{x^*-\hat{x}}_A^2 = \langle A(x^*-\hat{x});(x^*-x)\rangle
 \label{sec:mr}
 The minimal residual (MR) method is the counterpart to steepest descent for non-symmetric positive definite matrices. Therefore, $\mathcal{L}=A\mathcal{K}$ and as such, it takes a step with $v=r$ and $w=Ar$, giving rise to the procedure written in Algorithm~\hyperref[alg:mr]{\ref{alg:mr}} and the first iteration is depicted in Figure~\hyperref[fig:mr]{\ref{fig:mr}}. Note that in the comparison to steepest descent (shown in Figure~\hyperref[fig:one_d_projections]{\ref{fig:one_d_projections}}, the first iteration leads to a much smaller decrease in the actual error $\hat{d}$, but this does not necessarily hold for all linear systems. Generally speaking, steepest descent optimizes the error more efficiently (and is therefore preferred in the symmetric case), but under very favourable properties of the matrix $A$, MR could converge faster. Thus, the choice of algorithm is actually dependent on the problem that needs to be solved.
 
-Despite that, it has been proven that both methods will converge if the matrix $A$ meets the required conditions (positive definite for both algorithms, symmetric for steepest descent, see \cite{saad_iterative_2003}). The main difference between the two methods is that MR minimizes the norm of the residual $\norm{\hat{r}}_2$ in each iteration in the direction of $r$:
-\begin{equation}
-    f(x) = \norm{b-A\hat{x}}_2^2    
-\end{equation}
-
-
 \begin{algorithm}[h]
   \caption{Minimal Residual}
   \label{alg:mr}
@@ -198,7 +192,12 @@ Despite that, it has been proven that both methods will converge if the matrix $
   }
 \end{algorithm}
 
-\noindentAs a final remark in this section, it should be noted that it is quite easy to transform a positive definite matrix $A$ into a symmetric positive matrix by calculating $A+\transp{A}$. Therefore, both algorithms can be used interchangeably and the choice depends on the actual problem at hand. Furthermore, any linear system involving a non-singular matrix $A$ can be turned into a a system with a positive definite matrix by multiplying the system with $\transp{A}$ from the left. Thus, the original equation is replaced by:
+Despite that, it has been proven that both methods will converge if the matrix $A$ meets the required conditions (positive definite for both algorithms, symmetric for steepest descent, see \cite{saad_iterative_2003}). The main difference between the two methods is that MR minimizes the norm of the residual $\norm{\hat{r}}_2$ in each iteration in the direction of $r$:
+\begin{equation}
+    f(x) = \norm{b-A\hat{x}}_2^2    
+\end{equation}
+
+\noindent As a final remark in this section, it should be noted that it is quite easy to transform a positive definite matrix $A$ into a symmetric positive matrix by calculating $A+\transp{A}$. Therefore, both algorithms can be used interchangeably and the choice depends on the actual problem at hand. Furthermore, any linear system involving a non-singular matrix $A$ can be turned into a a system with a positive definite matrix by multiplying the system with $\transp{A}$ from the left. Thus, the original equation is replaced by:
 \begin{equation}
     \transp{A}Ax = \transp{A}b
 \end{equation}

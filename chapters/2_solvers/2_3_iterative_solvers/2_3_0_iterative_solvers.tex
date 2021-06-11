@@ -33,29 +33,6 @@ Many classical iterative methods, such as Jacobi or Gauss-Seidel (see \cite{golu
 %TODO
 While those classical techniques will be revisited in chapter..., they are rarely used in practice because the error decays too slowly and many iterations are needed before they converge \cite{strang_introduction_2009}.
 
-Instead, most state-of-the-art iterative solvers are based on the idea of projecting a $n$-dimensional problem into a lower-dimensional Krylov subspace \cite{golub_matrix_2013}. For a given matrix $A$ and a vector $y$, the associated Krylov sequence is defined as a set of vectors $\{y, Ay, A^2y, A^3y, \dots\}$ and the corresponding $m$-dimensional Krylov subspace $\mathcal{K}_m$ is the space spanned by the first $m$ vectors \cite{trefethen_numerical_1997}:
-\begin{equation}
-    \mathcal{K}_m(A,y) = span\{y, Ay, A^2y, \dots, A^{m-1}y\}
-\end{equation}
-
-\noindent Viewed from the angle of polynomial approximation, a vector $v$ in the Krylov subspace $\mathcal{K}_m$ can be expressed as a linear combination of powers of $A$ times $y$:
-\begin{equation}
-\label{eqn:poly1}
-    v = c_0y+c_1Ay+c_2A^2y+\dots+c_{m-1}A^{m-1}y
-\end{equation}
-
-\noindent In other words $v$ is a polynomial in $A$ times $b$ and by defining $p$ as a polynomial of the form $p(z) = c_0+c_qz+c_2z^2+\dots+c_{m-1}z^{m-1}$, the following, compact description can be achieved:
-\begin{equation}
-\label{eqn:poly2}
-v=p(A)b    
-\end{equation}
-
-\noindent A Krylov subspace method for solving a linear system will thus attempt to improve a initial solution $x^0$ based on the residual $r^0 = b-Ax^0$ by updating it with such a vector $v \in \mathcal{K}_m(A, r^0)$, which corresponds to:
-\begin{equation}
-    A^{-1}b \approx x^m = x^0+p(A)r^0
-\end{equation}
-
-\noindent Note that even though all Krylov subspace based techniques provide the same type of polynomial approximation, they differ in the constraints used to build these approximation, giving rise to a number of distinct algorithm (see \cite{saad_iterative_2003} for a comprehensive overview) and only a subset will be discussed in this research.
 
 
 
