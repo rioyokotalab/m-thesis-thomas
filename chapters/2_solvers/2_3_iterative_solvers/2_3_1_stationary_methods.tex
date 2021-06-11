@@ -127,7 +127,7 @@ On disadvantage of the Jacobi iteration is that it does not fully exploit the mo
 
 While the same convergence criteria as for the general case apply (see Equation~\hyperref[eqn:convergence]{\ref{eqn:convergence}}, \cite{venit_convergence_1975} notes that Gauss-Seidel performs better than Jacobi in many cases of practical interest even though faster convergence is not guaranteed for the general case. However, on modern architectures Jacobi's method has the advantage of being easily parallelizable, since the updates for each component $x_i$ can be performed independently. On contrary, each component depends on the previous one in the Gauss-Seidel algorithm making it difficult to implement efficiently in a parallel setting.
 
-\subsubsection{Successive Over-Relaxation (SOR}
+\subsubsection{Successive Over-Relaxation (SOR)}
 The convergence of the stationary methods discussed so far is not only limited by $\rho(G)<1$ (where $G=M^{-1}N$), the spectral radius also defines their speed of convergence. If $\rho(G)$ is close to unity, those methods might need a high number of iterations before convergence, making them prohibitively slow in practice. This concern, is addressed by the method of successive over-relaxation (SOR), introducing the parameterized splitting:
 \begin{equation}
     A=M_\omega - N_\omega
