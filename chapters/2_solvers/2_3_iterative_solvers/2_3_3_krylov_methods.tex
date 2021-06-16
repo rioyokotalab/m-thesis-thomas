@@ -232,6 +232,7 @@ The Lanczos algorithm can by viewed as a specialization of Arnoldi's method that
 
 \noindent In the symmetric case $\transp{A} = A$ and $h_{i,j} = 0$ for $j>i+1$ following the same reasoning as before. In the standard notation for the Lanczos iteration $T_k$ denotes the resulting matrix $H_k$, which takes the following form (as given in \cite{trefethen_numerical_1997}):
 \begin{equation}
+\label{eqn:lanczos}
    T_k = \left[
     \begin{array}{ccccc}
       \alpha_1 & \beta_1 & & & \\
@@ -317,11 +318,11 @@ Similar to how SYMMLQ is an extension of CG, MINRES has its equivalent for the s
   \SetAlgoLined
   \DontPrintSemicolon
   \KwIn{matrix $A \in \mathbb{R}^{n \times n}$, vector $b \in \mathbb{R}^{n}$ and initial solution $\iter[0]{x} \in \mathbb{R}^{n}$}
-  \KwOut{approximate solution $\iter[m]{x}$ to the system $Ax=b$\\
+  \KwOut{approximate solution $\iter[k]{x}$ to the system $Ax=b$\\
   \hrulealg}
   $\iter[0]{r} = b-A\iter[0]{x}$ \\
   $\iter[0]{p} = \iter[0]{r}$ \\
-  \For{$i = 1$ \KwTo $m$} {
+  \For{$i = 1$ \KwTo $k$} {
     $\alpha = \langle \iter[i-1]{r};A\iter[i-1]{r} \rangle / \langle A\iter[i-1]{p};A\iter[i-1]{p} \rangle$ \\
     $\iter[i]{x} = \iter[i-1]{x}+\alpha \iter[i-1]{p}$ \\
     $\iter[i]{r} = \iter[i-1]{r} - \alpha A\iter[i-1]{p}$ \\
@@ -380,3 +381,289 @@ In this decomposition, $R_k$ will have an upper triangular banded structure and 
 \begin{equation}
     \iter[k]{x} = Q_k\lambda_k=Q_kR_k^{-1}R\lambda_k
 \end{equation}
+
+
+
+\subsubsection{Generalized Minimal Residuals (GMRES)}
+\label{sec:gmres}
+
+The generalized minimal residuals (GMRES) method can be viewed as an extension of MINRES for the non-symmetric case, using Arnoldi's method instead of the Lanczos iteration. It is due to \cite{saad_gmres_1986} and can be used in order to obtain a solution for general linear systems. The idea of this approach is simple: In every iteration $k$, the accurate solution is approximated by the vector $\iter[k]{x} \in \mathcal{K}_k$ such that it minimizes the norm of the residual $\iter[k]{x}=b-A\iter[k]{x}$. Or, if expressed as a polynomial approximation problem, it is defined as (and solves the same problem as the CR method):
+\begin{equation}
+    \iter[k]{r}=p_kA(y)
+\end{equation}
+
+\noindent Note that in contrast to Equation~\hyperref[eqn:arnoldi_poly]{\ref{eqn:arnoldi_poly}}, for Arnoldi's method, $p_k \in P_k$ where
+\begin{equation}
+    P_k = \{\text{polynomials } p \text{ of degree } \leq k \text{ with }p(0)=1\}
+\end{equation}
+
+\noindent This is the same definition as for the CG method and as such, a subscript is used again to denote this difference. The orthogonality condition is now $p_k(A)y \perp A\mathcal{K}_k$ as illustrated in Figure~\hyperref[fig:gmres]{\ref{fig:gmres}}. In matrix form this is equivalent to defining a Krylov matrix $K_k \in \mathbb{R}^{n \times k}$ which satisfies:
+\begin{equation}
+\label{eqn:krylov_matrix}
+  AK_k =
+  \left[
+    \begin{array}{c|c|c|c}
+      & & & \\
+      Ab & A^2b & \dots & A^kb \\
+      & & & \\
+    \end{array}
+  \right] 
+\end{equation}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{chapters/2_solvers/2_3_iterative_solvers/figures/GMRES.pdf}
+    \caption{The least squares polynomial approximation problem underlying the GMRES (minimizing $\norm{\iter[k]{r}}_2$), as described in \cite{trefethen_numerical_1997}}.
+    \label{fig:gmres}
+\end{figure}
+
+\noindent From this, it is evident that the column space of that matrix is $A\mathcal{K}_k$ and the problem is reduced to finding a vector $c \in \mathbb{R}^{k}$ such that $\norm{AK_kc-b}_2$ is minimal   \cite{trefethen_numerical_1997}. Once this vector is obtained, the approximate solution would be given by $\iter[k]{x} =K_kc$. Solving the least squares problem could be achieved by computing a QR factorization of $AK_k$, but this procedure would be numerically unstable, since $K_k$ is exceedingly ill-conditioned \cite{trefethen_numerical_1997}. Instead, Arnoldi's method is used to construct a sequence of Krylov matrices $Q_k$ (spanning the successive Krylov subspaces $\mathcal{K}_k$) and then setting the approximate solution to $\iter[k]{x} = Q_ky$. Hence the problem can be reformulated as finding a vector $y \in \mathbb{R}^k$ satisfying:
+\begin{equation}
+    \norm{AQ_ky-b}_2=\text{ minimum}
+\end{equation}
+
+\noindent Using Equation~\hyperref[eqn:arnoldi]{\ref{eqn:arnoldi}} we obtain:
+\begin{equation}
+    \norm{Q_{k-1}\tilde{H}_k-b}_2=\text{ minimum}
+\end{equation}
+
+\noindent Now, multiplying by $Q^T_{k-1}$ from the left (which does not change the norm since both vectors are within the column space of $Q_{k-1}$), this is equivalent to:
+\begin{equation}
+    \norm{\tilde{H}_ky-Q^T_{k-1}b}_2 = \text{ minimum}
+\end{equation}
+
+\noindent From the construction of the Krylov matrices $\{Q_k\}$ (Equations~\hyperref[eqn:krylov_space]{\ref{eqn:krylov_space}} \& \hyperref[eqn:krylov_matrix]{\ref{eqn:krylov_matrix}}) it follows that $q_1=b\:/\norm{b}_2$ and $q_i \perp b$, for $i = 2, \dots, k+1$. Therefore, $Q^T_{k+1}b$ is equal to $\norm{b}_2e_1$, where $e_1=(1,0,0,\dots)^T$ and the solution to the GMRES least squares problem can be obtained by:
+\begin{equation}
+    \norm{\tilde{H}_ky-\norm{b}_2e_1}_2 = \text{ minimum}
+\end{equation}
+
+\noindent Due to the Hessenberg structure of $\tilde{H}_k$, this equation can be solved for $y$ via QR factorization at a reduced cost of $\mathcal{O}(k^2)$. Consequently GMRES is able to deliver a much faster solution than direct factorization, as long as the number of iterations $k$ remains small.
+
+\begin{algorithm}[h]
+  \caption{GMRES}
+  \label{alg:gmres}
+  \SetAlgoLined
+  \DontPrintSemicolon
+  \KwIn{non-singular matrix $A \in \mathbb{R}^{n \times n}$, vector $b \in \mathbb{R}^{n}$}
+  \KwOut{approximate solution $\iter[k]{x}$ to the system $Ax=b$\\
+  \hrulealg}
+  $q_1= b\:/\norm{b}_2$ \\
+  \% Arnoldi's method \\
+  \For{$i = 1$ \KwTo $m$} {
+    $w =A\cdot q^i$ \\
+    \For{$j = 1$ \KwTo $i$} {
+      $h_{j,i} = w^T\cdot q_j$ \\
+      $ w = w - h_{j,i}\cdot q_j$}
+    $h_{i-1,i} = \norm{w}_2$ \\
+    \If{$h_{i-1,i} = 0$}{\Return $\iter[i]{x}$}
+    $q_{i+1} = w/h_{i+1,i}$ \\
+  }
+  \;
+  \% GMRES extension \\
+  define $\tilde{H}_k = \{h_{i,j}\}, 1 \leq i \leq k+1, 1 \leq j \leq k$ \\
+  define $Q_k = \{q_1, \cdots, q_k\}$ \\
+  Find $y$ to minimize $\normd{\tilde{H}_ky-\norm{b}_2e_1}_2$ ($=\norm{\iter[k]{r}}_2$) \\
+  $\iter[k]{x} = Q_ky$
+\end{algorithm}
+
+\noindent Algorithm~\hyperref[alg:gmres]{\ref{alg:gmres}} describes the general outline of the GMRES algorithm as provided by \cite{trefethen_numerical_1997} (based on Modified-Gram-Schmidt Arnoldi). From this, it is immediately evident that both storage and computational complexity are dependent on the number of iterations required. The original formulation of the algorithm \cite{saad_gmres_1986} differs slightly from the one given above, taking the residual as the starting vector for the iteration and solving the equation in line 18 for a correction term instead. This enables the method to be restarted from the current approximate solution after a certain number of iterations, preventing $k$ from growing prohibitively large. The required changes are illustrated in Algorithm~\hyperref[alg:gmres2]{\ref{alg:gmres2}}
+
+\begin{algorithm}[h]
+  \caption{GMRES (initial solution based)}
+  \label{alg:gmres2}
+  \SetAlgoLined
+  \DontPrintSemicolon
+  \KwIn{non-singular matrix $A \in \mathbb{R}^{n \times n}$, vector $b \in \mathbb{R}^{n}$, initial solution $\iter[0]{x} \in \mathbb{R}^{n}$}
+  \KwOut{approximate solution $\iter[k]{x}$ to the system $Ax=b$\\
+  \hrulealg}
+  $\iter[0]{r} = b-A\iter[0]{x}$ \\
+  $\beta = \norm{\iter[0]{r}}_2$ \\
+  $q_1 = \iter[0]{r}/\beta$ \\
+  \For{$i = 1$ \KwTo $k$} {
+   $\langle$ step $i$ of Arnoldi's method (e.g. Algorithm~\hyperref[alg:arnoldi]{\ref{alg:arnoldi}} $\rangle$ \\
+  }
+  define $\tilde{H}_m = \{h_{i,j}\}, 1 \leq i \leq k+1, 1 \leq j \leq k$ \\
+  define $Q_k = \{q_1, \cdots, q_k\}$ \\
+  Find $y$ to minimize $\normd{\tilde{H}_ky-\beta e_1}_2$ \\
+  $\iter[k]{x} = \iter[0]{x}Q_ky$
+\end{algorithm}
+
+A disadvantage of both variants of the algorithm is that they do not provide the approximate solution $\iter[k]{x}$ at each step and it is therefore difficult to determine how many iterations are needed. However, this issue can be alleviated by using plane rotations to transform the Hessenberg matrix into upper triangular form. Since this is a common technique for solving the problem $min(\normd{\tilde{H}_ky-\beta e_1}_2)$, it can basically be performed at zero additional cost. By defining a sequence of rotations matrices $\Omega_i \in \mathbb{R}^{(k+1) \times (k+1)}$ of the form:
+\begin{equation}
+    \Omega_i=
+    \begin{blockarray}{*{8}{c} l}
+    \begin{block}{[*{8}{c}] l}
+      1 & & & & & & & \\
+      & \ddots & & & & & & \\
+      & & 1 & & & & & \\
+      & & &c_i & s_i& & &  \bigstrut[t] & \leftarrow \text{row } i\\
+      & & &-s_i & c_i& & & \bigstrut[t] & \leftarrow \text{row } i+1\\
+      & & & & & 1& & \\
+      & & & & & & \ddots & \\
+      & & & & & & & 1\\
+    \end{block}
+    \end{blockarray}
+\end{equation}
+
+\noindent Note that $s_i$ and $c_i$ are scalars satisfying $c^2_i+s^2_i=1$ and can generally be obtained via the formulas given in \cite{saad_iterative_2003}:
+\begin{equation}
+    s_i=\frac{h_{i+1, i}}{\sqrt{(h^{(i-1}_{i,i}=^2+h^2_{i+1, i}}}\text{,   } \;\;c_i=\frac{h^{(i-1)}_{i+1, i}}{\sqrt{(h^{(i-1}_{i,i}=^2+h^2_{i+1, i}}}
+\end{equation}
+
+\noindent By defining $V_k$ as the product of the rotation matrices $\Omega_i$
+\begin{equation}
+    V_k = \Omega_k \Omega_{k-1} \dots \Omega_1
+\end{equation}
+\noindent and
+\begin{equation}
+    \tilde{R}_k = V_k\tilde{H}_k 
+\end{equation}
+\begin{equation}
+        \tilde{g}_k = V_k(\beta e_1) = (\gamma_1, \cdots, \gamma_{k+1})^T
+\end{equation}
+
+\noindent Thus, the problem can be reformulated as $min(\normd{\beta e_1 -\tilde{H}_ky}_2==min(\normd{\tilde{g}_k -\tilde{R}_ky}_2)$, thanks to $V_k$ being unitary. A detailed proof for this equation is given in \cite{saad_iterative_2003}. The big advantage of this method is not only that $\tilde{R}_k$ is triangular (and hence easily solvable), but also that the current residual (i.e. at step $k$) is readily available as $\gamma_{k+1}$.
+
+Having obtained a satisfactory criterion to determine convergence, it is natural to ask for the upper bound of the number of iterations required by GMRES. Following the analysis in \cite{trefethen_numerical_1997}, we can observe that the algorithm converges monotonically, since $\norm{\iter[k]{r}}_2$ is minimal for the subspace $\mathcal{K}_k$, it can only decrease (or, at worst remain unchanged) by enlarging the space to $\mathcal{K}_{k+1}$.
+\begin{equation}
+    \norm{\iter[k-1]{r}}_2\leq \norm{\iter[k]{r}}_2
+\end{equation}
+
+\noindent Secondly, after at most $k$ steps, the process must converge in the absence of rounding errors and $\norm{\iter[k]{r}}_2 = 0$. However, to be useful as an iterative method, satisfactory accuracy must be achieved with  $k \ll n$. Expressed in terms of polynomial approximation: 
+\begin{equation}
+    \normd{\iter[k]{r}}_2=\norm{p_k(A)b}_2 \leq \norm{p_k(A)}_2\norm{b}_2
+\end{equation}
+
+\noindent And thus the convergence generally depends on the quantity $\norm{p_k(A)}_2$. This requires a polynomial that is as small as possible on the spectrum of $\Lambda(A)$, while still satisfying $p(0)=1$. For a diagonalizable matrix $A$, \cite{trefethen_numerical_1997} provide the following bound:
+\begin{equation}
+    \underset{p_k \in P_k}{\text{inf}} \norm{p_k(A)}_2 \leq \kappa(V) \underset{p_k \in P_k}{\text{inf}} \norm{p_k}_{\Lambda(A)}
+\end{equation}
+
+\noindent In this equation, $\Lambda(A)$ is the set of eigenvalues of $A$, $V$ is a non-singular matrix of eigenvectors, and $\norm{p_k}_{\Lambda(A)}$ is the smallest possible polynomial on the spectrum of $\Lambda(A)$ with $p(0)=1$. In other words, GMRES can only be expected to converge fast when $A$ is not too far from normal and a properly normalized degree $k$ polynomials can be found whose size on the spectrum $\Lambda(A)$ decreases quickly. Hence the convergence does not only depend on the magnitude (i.e. conditioning) but also on the location of the eigenvalues of $A$.
+As a closing statement, with regards to the accuracy of the method, it needs to be noted that backward stability for the Modified-Gram-Schmidt variant of the algorithm has been proven in \cite{paige_modified_2006}. Thus we can generally expect a small backward-error (i.e. a small remaining residual) from this approach. 
+
+
+\subsubsection{Biconjugate Gradient (BiCG)}
+\label{sec:bicg}
+The main disadvantage of GRMES (and any other algorithm based on Arnoldi's method) is that the whole matrix $Q_k$ needs to be stored in order to guarantee orthogonality of the Krylov subspace vectors. Since each new $q_{k+1}$ needs to be orthogonalized to all previous $k$ vectors, the work increases in each iteration. In Lanczos iteration, on the contrary, the work per iteration remains constant due to the tridiagonal structure of $H_k$ (usually referred to as $T_k$ in this case). As briefly discussed in Section~\hyperref[sec:subspace_methods]{\ref{sec:subspace_methods}}, a non-symmetric system can be transformed into a symmetric one via the transformation:
+\begin{equation}
+    \transp{A}Ax=\transp{A}b
+\end{equation}
+
+\noindent Applying the conjugate gradient method to such a system leads to an algorithm called CGN, which, according to \cite{trefethen_numerical_1997} is an abbreviation for "CG applied to the normal equations". The Krylov subspaces for such a system would be generated by $\transp{A}A$:
+\begin{equation}
+    \mathcal{K}_k = \langle \transp{A}b, (\transp{A}A)\transp{A}b, \dots, (\transp{A}A)^{k-1}\transp{A}b\rangle
+\end{equation}
+
+\noindent As discussed in Section~\hyperref[sec:conjugate_gradient]{\ref{sec:conjugate_gradient}}, this minimizes the $\transp{A}A$-norm of the error $\iter[k]{d}$ which is equivalent to:
+\begin{equation}
+    \normd{\iter[k]{d}}_{\transp{A}A}^2 = d^{(k)T}\transp{A}A\iter[k]{d}=\normd{
+    A\iter[k]{d}}_2^2 = \normd{\iter[k]{r}}_2^2
+\end{equation}
+
+\noindent Hence, like GMRES, this method is applicable to general systems and minimizes the norm of the residual without the growing cost factor per iteration. However, the condition number of the matrix $\transp{A}A$ unfortunately scales with:
+\begin{equation}
+    \kappa_2(\transp{A}A) = (\kappa_2(A))^2
+\end{equation}
+
+\noindent And this leads to a very bad convergence behaviour for large condition numbers. In spite of the (possibly) large number of iterations required, this method serves as an example that it is possible to obtain a decomposition of the form $A=QT \transp{Q}$  with a tridiagonal matrix $T$ from a non-symmetric matrix $A$, inspiring the process of biorthogonalization. 
+This approach extends the Lanczos iteration to non-symmetric matrices by relaxing the unitary property of the matrix $Q$, but insisting on a tridiagonal $T$, which leads to the following factorization \cite{golub_matrix_2013}:
+\begin{equation}
+    A=QTQ^{-1}
+\end{equation}
+
+\noindent In this decomposition, $T$ retains its form form Equation~\hyperref[eqn:lanczos]{\ref{eqn:lanczos}}, while $Q$ is non-singular but generally not unitary anymore. Taking the transpose, one obtains:
+\begin{equation}
+    \transp{A} = (Q^{-1})^T\transp{T}\transp{Q}
+\end{equation}
+
+\noindent From this, two matrices with biorthogonal columns can be defined by setting $V=Q$ and $W=(Q^{-1})^T$ such that:
+\begin{equation}
+  V_k =
+  \left[
+    \begin{array}{c|c|c}
+      & &  \\
+      v_1 & \dots & v_k \\
+      & &  \\
+    \end{array}
+  \right] \;\; \text{ and }\;\;
+    W_k =
+  \left[
+    \begin{array}{c|c|c}
+      & &  \\
+      w_1 & \dots & w_k \\
+      & &  \\
+    \end{array}
+  \right]
+\end{equation}
+
+\noindent The term biorthogonal refers to the following relation, which is illustrated in Figure~\hyperref[fig:biorthogonal]{\ref{fig:biorthogonal}}, for the two-dimensional case with $k=2$:
+\begin{equation}
+    \langle v_i;w_j\rangle =\begin{cases}
+      0 & \text{if }i \neq j\\
+      1 & \text{if }i = j\\
+    \end{cases}  
+\end{equation}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.3\linewidth]{chapters/2_solvers/2_3_iterative_solvers/figures/biorthogonal.pdf}
+    \caption{Biorthogonal matrices $V$ and $W$ in the 2-dimensional case and $k=2$.}
+    \label{fig:biorthogonal}
+\end{figure}
+
+\noindent The proof for the biorthogonal property is easily obtained from:
+\begin{equation}
+    WV=((Q^{-1})^T)^TQ = Q^{-1}Q = I
+\end{equation}
+
+\noindent From this, the biconjugate gradient (BiCG) method can be derived by using the Lanczos iteration to build a pair of biorthogonal bases for two subspaces:
+\begin{equation}
+\label{eqn:biconjugate_gradient}
+    \begin{aligned}
+    \mathcal{K}(A,v_1,k) &= \langle v_1, Av_1, \dots, A^{k-1}v_1\rangle \;\; \text{ and}\\
+    \mathcal{L}(\transp{A},w_1,k) &= \langle w_1, Aw_1, \dots, A^{k-1}w_1 \rangle
+    \end{aligned}
+\end{equation}
+
+\noindent At the $k$-th iteration, this method produces an iterate $\iter[k]{x}=\iter[0]{x}+V_k\iter[k]{y}$ with $\iter[k]{y} \in \real[k]$, which can be solved via:
+\begin{equation}
+    T_k\iter[k]{y}=W_k^T\iter[0]{r}
+\end{equation}
+
+\noindent The pseudo-code for this algorithm, which is basically a projection process on the subspaces defined in Equation~\hyperref[eqn:biconjugate_gradient]{\ref{eqn:biconjugate_gradient}} such that $\iter[k]{x} \in \mathcal{K}_k$ and $\iter[k]{r} \perp \mathcal{L}_k$ is provided in Algorithm~\hyperref[alg:biconjugate_gradient]{\ref{alg:biconjugate_gradient}}.
+
+\begin{algorithm}[h]
+  \caption{Biconjugate Gradient}
+  \label{alg:biconjugate_gradient}
+  \SetAlgoLined
+  \DontPrintSemicolon
+  \KwIn{matrix $A \in \mathbb{R}^{n \times n}$, vector $b \in \mathbb{R}^{n}$ and initial solution $\iter[0]{x} \in \mathbb{R}^{n}$}
+  \KwOut{approximate solution $\iter[k]{x}$ to the system $Ax=b$\\
+  \hrulealg}
+  $\iter[0]{r} = b-A\iter[0]{x}$ \\
+  choose $r^{(0)T}$ such that $\langle \iter[0]{r}; r^{(0)T}\rangle \neq 0$\\
+  $\iter[0]{p} = \iter[0]{r}$ \\
+  $p^{(i-1)T} = r^{(i-1)T}$ \\
+  \For{$i = 1$ \KwTo $k$} {
+    $\alpha = \langle \iter[i-1]{r};r^{(i-1)T} \rangle / \langle A\iter[i-1]{p};p^{(i-1)T} \rangle$ \\
+    $\iter[i]{x} = \iter[i-1]{x}+\alpha \iter[i-1]{p}$ \\
+    $\iter[i]{r} = \iter[i-1]{r} - \alpha A\iter[i-1]{p}$ \\
+    $r^{(i-1)T} = p^{(i-1)T} -\alpha \transp{A} p^{(i-1)T}$ \\
+    $\beta = \langle \iter[i]{r};r^{(i)T} \rangle / \langle \iter[i-1]{r};r^{(i-1)T} \rangle$ \\
+    $\iter[i]{p} = \iter[i]{r} + \beta \iter[i-1]{p}$ \\
+    $p^{(i)T} = r^{(i)T} + \beta p^{(i-1)T}$ \\
+  }
+\end{algorithm}
+
+Compared to GMRES the algorithm has the big advantage that the vectors $q_{k+1}$ can be directly computed from the previous ones and as such there is no need to maintain the matrix $Q_k$. Consequently, the amount of work per iteration remains constant. As a drawback, the convergence of BiCG is generally slower and not monotonic, often exhibiting erratic behaviour. Therefore, a number of modifications have been proposed to smooth the convergence behaviour of the algorithm such as QMR (due to \cite{freund_qmr_1991}) and Bi-CGSTAB (due to \cite{van_der_vorst_bi-cgstab_1992}. Additional improvements include variants such as CGS (introduced in \cite{sonneveld_cgs_1989}) and TFQMR (proposed by \cite{freund_transpose-free_1994}, which avoid the need to multiply by $\transp{A}$ and thus are able to reduce the workload per iteration.
+
+\subsubsection{Preconditioning}
+\label{sec:preconditioning}
+The convergence of any iterative solver is highly dependent on the properties of the matrix $A$ (e.g. eigenvalues, singular values, etc., depending on the solving technique). Preconditioning is a way to transforming the linear system in a way, such that these properties of the matrix are improved and faster convergence can be achieved. According to \cite{golub_matrix_2013}, any Krylov method used to solve the system $Ax=b$ will converge more rapidly if $A \in \realx{n}$ is "close to the identity matrix $I$". 
+
+
+
+
+\subsubsection{Flexible Generalized Minimal Residuals (FGMRES)}
+\label{sec:fgmres}

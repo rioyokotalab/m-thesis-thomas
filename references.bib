@@ -1,4 +1,133 @@
 
+@article{saad_flexible_1993,
+	title = {A {Flexible} {Inner}-{Outer} {Preconditioned} {GMRES} {Algorithm}},
+	volume = {14},
+	journal = {SIAM J. Sci. Comput.},
+	author = {Saad, Y.},
+	year = {1993},
+	pages = {461--469},
+}
+
+@inproceedings{rjasanow_adaptive_2000,
+	title = {Adaptive {Cross} {Approximation} of {Dense} {Matrices}},
+	booktitle = {Internatinal {Association} for {Boundary} {Element} {Methods} {Conference}, {IABEM}},
+	author = {Rjasanow, S.},
+	year = {2000},
+}
+
+@article{gatto_efficient_2017,
+	title = {Efficient {Preconditioning} of {Hp}-{FEM} {Matrices} by {Hierarchical} {Low}-{Rank} {Approximations}},
+	volume = {72},
+	issn = {0885-7474},
+	url = {https://doi.org/10.1007/s10915-016-0347-x},
+	doi = {10.1007/s10915-016-0347-x},
+	abstract = {We introduce a preconditioner based on a hierarchical low-rank compression scheme of Schur complements. The construction is inspired by standard nested dissection, and relies on the assumption that the Schur complements can be approximated, to high precision, by Hierarchically-Semi-Separable matrices. We build the preconditioner as an approximate \$\$LDM{\textasciicircum}t\$\$LDMt factorization of a given matrix A, and no knowledge of A in assembled form is required by the construction. The \$\$LDM{\textasciicircum}t\$\$LDMt factorization is amenable to fast inversion, and the action of the inverse can be determined fast as well. We investigate the behavior of the preconditioner in the context of DG finite element approximations of elliptic and hyperbolic problems, with respect to both the mesh size and the order of approximation.},
+	number = {1},
+	journal = {J. Sci. Comput.},
+	author = {Gatto, P. and Hesthaven, J. S.},
+	month = jul,
+	year = {2017},
+	note = {Place: USA
+Publisher: Plenum Press},
+	keywords = {Indefinite operators, Interpolative decomposition, Preconditioned GMRES},
+	pages = {49--80},
+}
+
+@article{gatto_preconditioner_2015,
+	title = {A {Preconditioner} {Based} on {Low}-{Rank} {Approximation} of {Schur} {Complements}},
+	url = {http://arxiv.org/abs/1508.07798},
+	abstract = {We introduce a preconditioner based on a hierarchical low-rank compression scheme of Schur complements. The construction is inspired by standard nested dissection, and relies on the assumption that the Schur complements can be approximated, to high precision, by Hierarchically-Semi-Separable matrices. We build the preconditioner as an approximate \$LDM{\textasciicircum}t\$ factorization of a given matrix \$A\$, and no knowledge of \$A\$ in assembled form is required by the construction. The \$LDM{\textasciicircum}t\$ factorization is amenable to fast inversion, and the action of the inverse can be determined fast as well. We investigate the behavior of the preconditioner in the context of DG finite element approximations of elliptic and hyperbolic problems.},
+	urldate = {2021-06-16},
+	journal = {arXiv:1508.07798 [math]},
+	author = {Gatto, Paolo and Hesthaven, Jan S.},
+	month = aug,
+	year = {2015},
+	note = {arXiv: 1508.07798},
+	keywords = {65F08, 65F50, Mathematics - Numerical Analysis},
+}
+
+@article{martinsson_randomized_2019,
+	title = {Randomized methods for matrix computations},
+	url = {http://arxiv.org/abs/1607.01649},
+	abstract = {The purpose of this text is to provide an accessible introduction to a set of recently developed algorithms for factorizing matrices. These new algorithms attain high practical speed by reducing the dimensionality of intermediate computations using randomized projections. The algorithms are particularly powerful for computing low-rank approximations to very large matrices, but they can also be used to accelerate algorithms for computing full factorizations of matrices. A key competitive advantage of the algorithms described is that they require less communication than traditional deterministic methods.},
+	language = {en},
+	urldate = {2021-06-16},
+	journal = {arXiv:1607.01649 [math]},
+	author = {Martinsson, Per-Gunnar},
+	month = feb,
+	year = {2019},
+	note = {arXiv: 1607.01649},
+	keywords = {Mathematics - Numerical Analysis},
+}
+
+@article{eckart_approximation_1936,
+	title = {The approximation of one matrix by another of lower rank},
+	volume = {1},
+	journal = {Psychometrika},
+	author = {Eckart, C. and Young, G.},
+	year = {1936},
+	pages = {211--218},
+}
+
+@book{markovsky_low_2011,
+	title = {Low {Rank} {Approximation}: {Algorithms}, {Implementation}, {Applications}},
+	isbn = {1-4471-2226-7},
+	abstract = {Data Approximation by Low-complexity Models details the theory, algorithms, and applications of structured low-rank approximation. Efficient local optimization methods and effective suboptimal convex relaxations for Toeplitz, Hankel, and Sylvester structured problems are presented. Much of the text is devoted to describing the applications of the theory including: system and control theory; signal processing; computer algebra for approximate factorization and common divisor computation; computer vision for image deblurring and segmentation; machine learning for information retrieval and clustering; bioinformatics for microarray data analysis; chemometrics for multivariate calibration; and psychometrics for factor analysis. Software implementation of the methods is given, making the theory directly applicable in practice. All numerical examples are included in demonstration files giving hands-on experience and exercises and MATLAB examples assist in the assimilation of the theory.},
+	publisher = {Springer Publishing Company, Incorporated},
+	author = {Markovsky, Ivan},
+	year = {2011},
+}
+
+@article{sonneveld_cgs_1989,
+	title = {{CGS}, {A} {Fast} {Lanczos}-{Type} {Solver} for {Nonsymmetric} {Linear} systems},
+	volume = {10},
+	journal = {Siam Journal on Scientific and Statistical Computing},
+	author = {Sonneveld, P.},
+	year = {1989},
+	pages = {36--52},
+}
+
+@inproceedings{freund_transpose-free_1994,
+	address = {New York, NY},
+	title = {Transpose-{Free} {Quasi}-{Minimal} {Residual} {Methods} for {Non}-{Hermitian} {Linear} {Systems}},
+	isbn = {978-1-4613-9353-5},
+	abstract = {Recently, Freund and Nachtigal proposed a novel conjugate gradient-type method, the quasi-minimal residual algorithm (QMR), for the iterative solution of general non-Hermitian systems of linear equations. The QMR method is based on the nonsymmetric Lanczos process, and thus, like the latter, QMR requires matrix-vector multiplications with both the coefficient matrix of the linear system and its transpose. However, in certain applications, the transpose is not readily available, and generally, it is desirable to trade in multiplications with the transpose for matrix-vector products with the original matrix.},
+	booktitle = {Recent {Advances} in {Iterative} {Methods}},
+	publisher = {Springer New York},
+	author = {Freund, Roland W.},
+	editor = {Golub, Gene and Luskin, Mitchell and Greenbaum, Anne},
+	year = {1994},
+	pages = {69--94},
+}
+
+@article{van_der_vorst_bi-cgstab_1992,
+	title = {Bi-{CGSTAB}: {A} {Fast} and {Smoothly} {Converging} {Variant} of {Bi}-{CG} for the {Solution} of {Nonsymmetric} {Linear} {Systems}},
+	volume = {13},
+	issn = {0196-5204},
+	url = {https://doi.org/10.1137/0913035},
+	doi = {10.1137/0913035},
+	abstract = {Recently the Conjugate Gradients-Squared (CG-S) method has been proposed as an attractive variant of the Bi-Conjugate Gradients (Bi-CG) method. However, it has been observed that CG-S may lead to a rather irregular convergence behaviour, so that in some cases rounding errors can even result in severe cancellation effects in the solution. In this paper, another variant of Bi-CG is proposed which does not seem to suffer from these negative effects. Numerical experiments indicate also that the new variant, named Bi-CGSTAB, is often much more efficient than CG-S.},
+	number = {2},
+	journal = {SIAM J. Sci. Stat. Comput.},
+	author = {van der Vorst, H. A.},
+	month = mar,
+	year = {1992},
+	note = {Place: USA
+Publisher: Society for Industrial and Applied Mathematics},
+	keywords = {65F10, Bi-CG, CG-S, iterative solver, nonsymmetric linear systems, preconditioning},
+	pages = {631--644},
+}
+
+@article{freund_qmr_1991,
+	title = {{QMR}: a {Quasi}-{Minimal} {Residual} {Method} for {Non}-{Hermitian} {Linear} {Systems}},
+	volume = {60},
+	number = {1},
+	journal = {Numerische Mathematik},
+	author = {Freund, Roland W. and Nachtigal, Noël M.},
+	year = {1991},
+	pages = {315--339},
+}
+
 @article{paige_solution_1975,
 	title = {Solution of {Sparse} {Indefinite} {Systems} of {Linear} {Equations}},
 	volume = {12},
