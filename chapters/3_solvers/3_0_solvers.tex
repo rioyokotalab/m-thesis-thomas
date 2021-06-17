@@ -1,0 +1,10 @@
+\chapter{Dense Linear Solvers}
+\label{chap:solvers}
+
+The goal of this chapter is to facilitate a fundamental understanding of techniques that can be used to solve linear systems. Each section is dedicated to a specific solving method and will provide an explanation of its basic concepts alongside a discussion of the most popular algorithms. The information provided in this chapter is presented in an incremental fashion, that does not necessarily correspond to the historical development of the field. It aims to serve as a self-contained and easy to understand introduction to solving linear systems, helping to build up a theoretical understanding of the topic. Subsequent chapters will then make use of the obtained knowledge as a foundation for expanding into more complex ideas. However, since the focus of this research is on dense linear systems, the discussion will be limited to such techniques. More general and detailed introductions are available in various textbooks such as \cite{saad_iterative_2003} or \cite{golub_matrix_2013}.
+
+The first section of this chapter is dedicated to direct solving methods with a focus on LU factorization, summarizing methods that are able to obtain (theoretically) exact solutions. The next section will introduce the idea of iterative solvers, starting from the classical iterations (e.g. Jacobi, Gauss-Seidel) before developing the idea of subspace methods beginning with the well known Gradient Descent algorithm. From this, it will gradually expand into Krylov subspace based techniques, discussing some of the most powerful iterative solvers currently available. The last two sections are then dedicated to reducing the number of iterations for these methods via preconditioning, a pre-requisite in many settings in order to become computationally feasible.
+
+
+\import{}{3_1_direct_solvers.tex}
+\import{3_2_iterative_solvers}{3_2_0_iterative_solvers.tex}

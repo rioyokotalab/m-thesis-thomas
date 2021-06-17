@@ -1,20 +1,20 @@
 \subsection{Krylov Subspace Methods}
 \label{sec:krylov_methods}
 
-Even though the methods introduced in the previous chapter are guaranteed to converge, the restriction to a one-dimensional search space severely limits the progress they can achieve in a single iteration. Thus they might require a large number of iterations before they produce an accurate approximation of the desired solution. As a natural extension, faster progress could be expected from a larger search-space by minimizing the residual over multiple dimensions at the same time. Simultaneously, the search-space has to remain small enough in order to obtain a fast solution to the minimization process. Since there is a trade-off between them minimization cost and the number of iterations, an intuitive solution would be to create a sequence of subspaces $S$ with increasing dimensions such that:
+Even though the methods introduced in the previous chapter are guaranteed to converge, the restriction to a one-dimensional search space severely limits their convergence behaviour. Since the error is only minimized along the current search direction, multiple iterations might actually end up optimizing along the same search space. Thus they might require a large number of iterations before they produce an accurate approximation of the desired solution. As a natural extension, faster progress could be expected from a larger search-space by minimizing the residual over multiple dimensions at the same time. Simultaneously, the search-space has to remain small enough in order to obtain a fast solution to the minimization process. Since there is a trade-off between the minimization cost and the number of iterations, an intuitive solution would be to create a sequence of subspaces $S$ with increasing dimensions such that:
 \begin{equation}
     S_1 \subset \ S_2 \subset S_3 \subset \dots
 \end{equation}
 
-\noindent At each iteration $k$ of the iterative solver, the subspace $S_k$ satisfying $dim(S_k)=k$ is searched for a solution $\hat{x}$ that minimizes:
+\noindent At each iteration $k$ of the iterative solver, the subspace $S_k$ satisfying $dim(S_k)=k$ is searched for a solution $\iter{x}$ that minimizes:
 \begin{equation}
 \label{eqn:residual}
     f(x)= r = Ax-b
 \end{equation}
 
-\noindent Note that because $S_n=\real$, this sequence will ultimately produce the exact solution to the problem (in absence of rounding errors). However, since this would amount to more work than just solving the system directly, a good approximation should be achieved in $k$ iterations with $k \ll n$. Hence the challenge is to find such a subspace sequence that minimizes $r$ in the most optimal way. As illustrated in the one-dimensional case, the error of the approximation decreases most rapidly in the direction of the residual. Consequently it seems reasonable to choose $S_{k+1}$ at iteration $k$ so that it includes both $\iter[k]{x}$ and $\iter[k]{r}$, which guarantees that the update $\iter[k+1]{x}$ will be at least as good as the one-dimensional case \cite{golub_matrix_2013}. From $\iter[0]{x}$ as the initial guess and Equation~\hyperref[eqn:residual]{\ref{eqn:residual}} it follows that $\iter[k]{r} \in span\{\iter[k]{x},A\iter[k]{x}\}$ and the only way to satisfy this requirement is:
+\noindent Note that because $S_n=\real$, this sequence will ultimately produce the exact solution to the problem (in absence of rounding errors). However, since this would amount to more work than just solving the system directly, a good approximation should be achieved in $k$ iterations with $k \ll n$. Hence, the challenge is to find such a subspace sequence that minimizes $r$ in the most optimal way. As illustrated in the one-dimensional case, the error of the approximation decreases most rapidly in the direction of the residual. Consequently it seems reasonable to choose $S_{k+1}$ at iteration $k$ so that it includes both $\iter[k]{x}$ and $\iter[k]{r}$, which guarantees that the update $\iter[k+1]{x}$ will be at least as good as the one-dimensional case \cite{golub_matrix_2013}. From $\iter[0]{x}$ as the initial guess and Equation~\hyperref[eqn:residual]{\ref{eqn:residual}} it follows that $\iter[k]{r} \in span\langle\iter[k]{x},A\iter[k]{x}\rangle$ and the only way to satisfy this requirement is:
 \begin{equation}
-    S_k=\mathcal{K}(A,\iter[0]{r}, k) = span\{\iter[0]{r}, A\iter[0]{r}, A^2\iter[0]{r},\dots A^{k-1}\iter[0]{r}\}
+    S_m=\mathcal{K}(A,\iter[0]{r}, m) = span\langle\iter[0]{r}, A\iter[0]{r}, A^2\iter[0]{r},\dots A^{m-1}\iter[0]{r}\rangle
 \end{equation}
 
 \noindent This kind of sequence is referred to as a Kryolov subspace and viewed from the angle of polynomial approximation, a vector $v$ in such a Krylov subspace can be expressed in general terms as a linear combination of powers of $A$ times $y$:
@@ -29,27 +29,27 @@ Even though the methods introduced in the previous chapter are guaranteed to con
 v=p(A)y  
 \end{equation}
 
-\noindent A Krylov subspace method for solving a linear system will thus attempt to improve a initial solution $\iter[0]{x}$ based on the residual $\iter[0]{r} = b-A\iter[0]{x}$ by updating it with such a vector $v \in \mathcal{K}(A, \iter[0]{r},k)$, which corresponds to:
+\noindent A Krylov subspace method for solving a linear system will thus attempt to improve a initial solution $\iter[0]{x}$ based on the residual $\iter[0]{r} = b-A\iter[0]{x}$ by updating it with such a vector $v \in \mathcal{K}(A, \iter[0]{r},m)$, which corresponds to:
 \begin{equation}
-    A^{-1}b \approx \iter{x} = \iter[0]{x}+p(A)\iter[o]{r}
+    A^{-1}b \approx \iter[m]{x} = \iter[0]{x}+p(A)\iter[0]{r}
 \end{equation}
 
-\noindent From this point going forward, $\mathcal{K}(A, \iter[0]{r},k)$ will be simply denoted as $\mathcal{K}_k$ if there is no ambiguity. Furthermore, note that even though all Krylov subspace based techniques provide the same type of polynomial approximation, they differ in the constraints $\mathcal{L}_k$ used to build these approximation, giving rise to a number of distinct algorithm (see \cite{saad_iterative_2003} for a comprehensive overview) and only a subset will be discussed in this research.
+\noindent From this point going forward, $\mathcal{K}(A, \iter[0]{r},m)$ will be simply denoted as $\mathcal{K}_m$ if there is no ambiguity. Furthermore, note that even though all Krylov subspace based techniques provide the same type of polynomial approximation, they differ in the constraints $\mathcal{L}_m$ used to build these approximation, giving rise to a number of distinct algorithm (see \cite{saad_iterative_2003} for a comprehensive overview) and only a subset will be discussed in this research.
 
 
 
 \subsubsection{Conjugate Gradient (CG)}
 \label{sec:conjugate_gradient}
 
-The easiest way to interpret the conjugated gradient method (first proposed by \cite{hestenes_methods_1952} is as an extension of the steepest descent algorithm to Krylov subspaces. Indeed, since in the first iteration, the Krylov subspace $\mathcal{K}_1=\{\iter[0]{r}\}$, the initial steps taken by the two algorithms are exactly equivalent. However, for CG the projection subspace extends in the second iteration to $\mathcal{K}_2=\{\iter[0]{r}, A\iter[0]{r}\}$ (a two-dimensional space), while it remains one dimensional for steepest descent. In other words, both methods optimize the error $\iter[0]{d}$ in the first step along the residual vector $\iter[0]{r}$ (i.e. the search direction $\iter[0]{p}=\iter[0]{r}$), but they differ in the second step. While steepest descent minimizes the new error $\iter[1]{d}$ only along the new residual $\iter[r]{1}$ (i.e. $\iter[1]{p}=\iter[1]{r}$, CG minimizes the error for the whole plane spanned by $span\{\iter[0]{r}, \iter[1]{r}\}$. This can be achieved by selecting a new search direction $\iter[1]{p}$ that is $A$-orthogonal to all previous ones \cite{trefethen_numerical_1997}. If the bases of the Krylov subspace are rewritten as:
+The easiest way to interpret the conjugated gradient method (first proposed by Hestenes \& Stiefel,  \cite{hestenes_methods_1952} is as an extension of the steepest descent algorithm to Krylov subspaces. Indeed, since in the first iteration, the Krylov subspace is defined as $\mathcal{K}_1=\{\iter[0]{r}\}$, the initial steps taken by the two algorithms are exactly equivalent. However, for CG the projection subspace extends in the second iteration to $\mathcal{K}_2=\{\iter[0]{r}, A\iter[0]{r}\}$ (a two-dimensional space), while it remains one dimensional for steepest descent. In other words, both methods optimize the error $\iter[0]{d}$ in the first step along the residual vector $\iter[0]{r}$ (i.e. the search direction $\iter[0]{p}=\iter[0]{r}$), but they differ in the second step. While steepest descent minimizes the new error $\iter[1]{d}$ only along the new residual $\iter[1]{r}$ (i.e. $\iter[1]{p}=\iter[1]{r}$), CG minimizes the error for the whole plane spanned by $span\langle\iter[0]{r}, \iter[1]{r}\rangle$. This can be achieved by selecting a new search direction $\iter[1]{p}$ that is $A$-orthogonal to all previous ones \cite{trefethen_numerical_1997}. If the bases of the Krylov subspace are rewritten as:
 \begin{equation}
-    \mathcal{K}_k = span\{\iter[0]{r}, A\iter[0]{r}, \dots A^{k-1}\iter[0]{r}\} = span\{q_0, q_1, \dots q_{k-1}\}
+    \mathcal{K}_m = span\langle\iter[0]{r}, A\iter[0]{r}, \dots A^{m-1}\iter[0]{r}\rangle = span\langle\bm{q}_0, \bm{q}_1, \dots, \bm{q}_{m-1}\rangle
 \end{equation}
 
-\noindent Then this corresponds to the condition $q_i \perp q_j$ with $i\neq j$ for all $i$,$j$ from $0$ to $k$. As a result, the algorithm introduced by \cite{hestenes_methods_1952} requires two modifications when compared to steepest descent.
+\noindent Then, this corresponds to the condition $\bm{q}_i \perp \bm{q}_j$ with $i\neq j$ for all $i$,$j$ from $0$ to $m$. As a result, the algorithm introduced by \cite{hestenes_methods_1952} requires two modifications when compared to steepest descent.
 \begin{enumerate}
     \item Introduce a vector $p$ ($\iter[0]{p} = \iter[0]{r}$) representing the search direction.
-    \item Determine the new search direction $\iter[k+1]{p}$ so that it is $A$-orthogonal to all previous ones (or, equivalently create an orthogonal basis $q_{k}$ for the Krylov subspace $\mathcal{K}_{k+1}$).
+    \item Determine the new search direction $\iter[k+1]{p}$ so that it is $A$-orthogonal to all previous ones (or, equivalently, create an orthogonal basis $\bm{q}_{k}$ for the Krylov subspace $\mathcal{K}_{k+1}$).
 \end{enumerate}
 
 \begin{algorithm}[h]
@@ -62,36 +62,36 @@ The easiest way to interpret the conjugated gradient method (first proposed by \
   \hrulealg}
   $\iter[0]{r} = b-A\iter[0]{x}$ \\
   $p = \iter[0]{r}$ \\
-  \For{$i = 1$ \KwTo $m$} {
-    $\alpha = \langle \iter[i-1]{r};\iter[i-1]{r} \rangle / \langle Ap;p \rangle$ \\
-    $\iter[i]{x} = \iter[i-1]{x}+\alpha p$ \\
-    $\iter[i]{r} = \iter[i-1]{r} - \alpha Ap$ \\
-    $\beta = \langle \iter[i]{r};\iter[i]{r} \rangle / \langle \iter[i-1]{r};\iter[i-1]{r} \rangle$ \\
-    $p = \iter[i]{r} + \beta p$ \\
+  \For{$k = 1$ \KwTo $m$} {
+    $\alpha = \langle \iter[k-1]{r};\iter[k-1]{r} \rangle / \langle Ap;p \rangle$ \\
+    $\iter{x} = \iter[k-1]{x}+\alpha p$ \\
+    $\iter{r} = \iter[k-1]{r} - \alpha Ap$ \\
+    $\beta = \langle \iter{r};\iter{r} \rangle / \langle \iter[k-1]{r};\iter[k-1]{r} \rangle$ \\
+    $p = \iter{r} + \beta p$ \\
   }
 \end{algorithm}
 
-\noindent The pseudo-code provided in Algorithm~\hyperref[alg:conjugate_gradient]{\ref{alg:conjugate_gradient}} implements those changes. The modifications in line 1 correspond to the requierement that the new residual needs to be orthogonal to the Krylov subspace $\mathcal{K}_k$ (instead of just the previous residual), using a little simplification in the numerator of the fraction. Because $p$ is built as a linear combination of the previous residuals, $\langle \iter[i]{r};\iter[i]{r} \rangle = \langle \iter[i]{r};\iter[i]{p} \rangle$ is valid and the terms can be used interchangeably. The addition of lines 7 \& 8 corresponds to the Gram-Schmidt orthogonalization of the basis vectors, ensuring that the new search direction is $A$-orthogonal to all previous ones. Note that since $\iter[k]{p}$ is already $A$-orthogonal to all $\iter[i]{p}, i=0,\dots,k-1$, the only orthogonalization that is needed for $\iter[k+1]{p}$ is with respect to $\iter[k]{p}$. In other words, we have the following identities of subspaces:
+\noindent The pseudo-code provided in Algorithm~\hyperref[alg:conjugate_gradient]{\ref{alg:conjugate_gradient}} implements those changes. The modifications in line 4 correspond to the requierement that the new residual needs to be orthogonal to the Krylov subspace $\mathcal{K}_{k-1}$ (instead of just the previous residual), using a little simplification in the numerator of the fraction. Because $p$ is built as a linear combination of the previous residuals, $\langle \iter{r};\iter{r} \rangle = \langle \iter{r};\iter{p} \rangle$ is valid and the terms can be used interchangeably. The addition of lines 7 \& 8 corresponds to the Gram-Schmidt orthogonalization of the basis vectors, ensuring that the new search direction is $A$-orthogonal to all previous ones. Note that since $\iter[k]{p}$ is already $A$-orthogonal to all $\iter[i]{p}, i=0,\dots,k-1$, the only orthogonalization that is needed for $\iter[k+1]{p}$ is with respect to $\iter[k]{p}$. In other words, we have the following identities of subspaces:
 \begin{equation}
   \begin{aligned}
-    \mathcal{K}_k 
-    & =\langle \iter[1]{x}, \iter[2]{x}, \dots \iter[k]{x} \rangle 
-   & & = \langle \iter[0]{p}, \iter[1]{p}, \dots \iter[k-1]{p} \rangle \\
-    & = \langle \iter[0]{r}, \iter[1]{r}, \dots \iter[k-1]{r} \rangle
-   & & =\langle \iter[0]{r}, A\iter[0]{r}, \dots A^{k-1}\iter[0]{r}\rangle\\
+    \mathcal{K}_m 
+    & =\langle \iter[1]{x}, \iter[2]{x}, \dots \iter[m]{x} \rangle 
+   & & = \langle \iter[0]{p}, \iter[1]{p}, \dots \iter[m-1]{p} \rangle \\
+    & = \langle \iter[0]{r}, \iter[1]{r}, \dots \iter[m-1]{r} \rangle
+   & & =\langle \iter[0]{r}, A\iter[0]{r}, \dots A^{m-1}\iter[0]{r}\rangle\\
   \end{aligned}
 \end{equation}
 
 \noindent Furthermore, for those subspaces, the following properties hold:
 \begin{equation}
     \langle\iter[i]{r};\iter[j]{r}\rangle =0 \;\; \text{ and } \;\; \langle\iter[i]{p};\iter[j]{p}\rangle_A =0
-    \;\; \text{ for all }\;\; i,j <k, i \neq j
+    \;\; \text{ for all }\;\; i,j <m, i \neq j
 \end{equation}
 
-\noindent Since all Krylov subspace iterations can be analyzed in terms of matrix polynomials (see Equations~\hyperref[eqn:poly1]{\ref{eqn:poly1}} \& \hyperref[eqn:poly2]{\ref{eqn:poly2}}), the same is true for the CG method. By defining $P_k$ as the set of polynomials $q$ of degree $\leq k$ with $q(0)=1$ and $d$ denoting the initial error $\iter[0]{d} = x^*-\iter[0]{x}$ the problem CG tries to solve can be reformulated as finding the polynomial $q_k$ such that:
+\noindent Since all Krylov subspace iterations can be analyzed in terms of matrix polynomials (see Equations~\hyperref[eqn:poly1]{\ref{eqn:poly1}} \& \hyperref[eqn:poly2]{\ref{eqn:poly2}}), the same is true for the CG method. By defining $P_k$ as the set of polynomials $q$ of degree $\leq m$ with $q(0)=1$ and $\iter[0]{d}$ denoting the initial error $\iter[0]{d} = x^*-\iter[0]{x}$ the problem CG tries to solve can be reformulated as finding the polynomial $q_m$ such that:
 \begin{equation}
 \label{eqn:cg_poly}
-    p_k = \underset{p\in P_k}{min} \norm{p_k(A)\iter[0]{d}}_A
+    p_m = \underset{p\in P_m}{min} \norm{p_m(A)\iter[0]{d}}_A
 \end{equation}
 
 \noindent In terms of convergence of the CG method, it is known that the speed depends on the location of the spectrum of $A$ and \cite{trefethen_numerical_1997} expressed the two best known corollaries in the following form:
@@ -99,11 +99,11 @@ The easiest way to interpret the conjugated gradient method (first proposed by \
     \item CG converges in at most $m$ steps, if $A$ has exactly $m$ distinct eigenvalues
     \item If the condition number $\kappa_2(A) $ is not too large, convergence can be expected in $\mathcal{O}(\sqrt{\kappa_2(A})$ iterations because the following is known for the error $d$:
 \begin{equation}
-        \frac{\norm{\iter[k]{d}}_A}{\norm{\iter[0]{d}}_A} \leq 2 \left( \frac{\sqrt{\kappa_2(A)}-1}{\sqrt{\kappa_2(A)}+1}\right)^k
+        \frac{\norm{\iter[m]{d}}_A}{\norm{\iter[0]{d}}_A} \leq 2 \left( \frac{\sqrt{\kappa_2(A)}-1}{\sqrt{\kappa_2(A)}+1}\right)^m
 \end{equation}
 \end{itemize}
 
-\noindent Finally, it should be noted that the formulation in Algorithm~\hyperref[alg:conjugate_gradient]{\ref{alg:conjugate_gradient}} is the one originally proposed by \cite{hestenes_methods_1952}, but several other alternative variants are possible (for example based on the Lanczos iteration, see Section~\hyperref[sec:lanczos]{\ref{sec:lanczos}}). The key point is the construction of the orthogonal bases for the Krylov subspace $\mathcal{K}_k$ and depending on how those are obtained (e.g. the orthogonalization scheme employed) the denotations of the algorithms deviate slightly. Due to the importance of this part for all Krylov subspace based iterative methods, the two main techniques for obtaining such bases will be discussed in the next sections.
+\noindent Finally, it should be noted that the formulation in Algorithm~\hyperref[alg:conjugate_gradient]{\ref{alg:conjugate_gradient}} is the one originally proposed by \cite{hestenes_methods_1952}, but several other alternative variants are possible (for example based on the Lanczos iteration, see Section~\hyperref[sec:lanczos]{\ref{sec:lanczos}}). The key point is the construction of the orthogonal bases for the Krylov subspace $\mathcal{K}_m$ and, depending on how those are obtained (e.g. the orthogonalization scheme employed), the denotations of the algorithms deviate slightly. Due to the importance of this part for all Krylov subspace based iterative methods, the two main techniques for obtaining such bases will be discussed in the next sections.
 
 
 \subsubsection{Arnolid's method}
@@ -209,7 +209,7 @@ Since Krylov subspace iterations can be analyzed in terms of matrix polynomials 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.6\linewidth]{chapters/2_solvers/2_3_iterative_solvers/figures/Arnoldi.pdf}
+    \includegraphics[width=0.6\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/Arnoldi.pdf}
     \caption{The least squares polynomial approximation problem underlying the Arnoldi iteration as described in \cite{trefethen_numerical_1997}.}
     \label{fig:arnoldi}
 \end{figure}
@@ -412,7 +412,7 @@ The generalized minimal residuals (GMRES) method can be viewed as an extension o
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.7\linewidth]{chapters/2_solvers/2_3_iterative_solvers/figures/GMRES.pdf}
+    \includegraphics[width=0.7\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/GMRES.pdf}
     \caption{The least squares polynomial approximation problem underlying the GMRES (minimizing $\norm{\iter[k]{r}}_2$), as described in \cite{trefethen_numerical_1997}}.
     \label{fig:gmres}
 \end{figure}
@@ -607,7 +607,7 @@ This approach extends the Lanczos iteration to non-symmetric matrices by relaxin
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.3\linewidth]{chapters/2_solvers/2_3_iterative_solvers/figures/biorthogonal.pdf}
+    \includegraphics[width=0.3\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/biorthogonal.pdf}
     \caption{Biorthogonal matrices $V$ and $W$ in the 2-dimensional case and $k=2$.}
     \label{fig:biorthogonal}
 \end{figure}
@@ -661,9 +661,3 @@ Compared to GMRES the algorithm has the big advantage that the vectors $q_{k+1}$
 \subsubsection{Preconditioning}
 \label{sec:preconditioning}
 The convergence of any iterative solver is highly dependent on the properties of the matrix $A$ (e.g. eigenvalues, singular values, etc., depending on the solving technique). Preconditioning is a way to transforming the linear system in a way, such that these properties of the matrix are improved and faster convergence can be achieved. According to \cite{golub_matrix_2013}, any Krylov method used to solve the system $Ax=b$ will converge more rapidly if $A \in \realx{n}$ is "close to the identity matrix $I$". 
-
-
-
-
-\subsubsection{Flexible Generalized Minimal Residuals (FGMRES)}
-\label{sec:fgmres}

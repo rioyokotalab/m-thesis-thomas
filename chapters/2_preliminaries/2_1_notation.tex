@@ -4,26 +4,35 @@
 
 \begin{tabular}{ll}
   $\mathbb{R}$ & Space of real numbers \\
-  $\mathbb{R}^{m}$ & Space of vectors of $m$ elements \\
-  $\mathbb{R}^{m \times n}$ & Space of matrices with $m$ rows and $n$ columns \\
+  $\real$ & Space of real vectors with $n$ elements \\
+  $\realx[m]{n}$ & Space of real matrices with $m$ rows and $n$ columns \\
   $A$ & Capital letters denote matrices \\
   $b$ & Lower case letters denote column vectors \\
-  $A_{i,j}$ & $j$-th element on the $i$-th row of $A$ \\
-  $b_{i}$ & $i$-th element of $b$ \\
-  $\norm{A}_p$ & $p$-norm of matrix $A$ \\
-  $\norm{b}_p$ & $p$-norm of vector $b$ \\
+  $a_{i,j}$ & The $j$-th element on the $i$-th row of matrix $A$ \\
+  $\bm{a}_{i}$ & The $i$-th column vector of matrix $A$ (denoted in a boldface font) \\
+  $b_{i}$ & The $i$-th element of vector $b$ \\
+  $\iter[k]{x}$ & The $k$-th iterate of the original value(s) $\iter[0]{x}$\\
+  $\norm{A}_p$ & The $p$-norm of matrix $A$ \\
+  $\norm{b}_p$ & The $p$-norm of vector $b$ \\
+  $\transp{A}$, $\transp{b}$    & Transpose of matrix $A$ or vector $b$\\
+  $\inverse{A}$ & Inverse of matrix $A$ \\
+  $\langle v;u \rangle$ & Dot product between vectors $v$ and $u$, $\langle v;u \rangle = \transp{v}u$\\
+  $\langle v;u \rangle_A$ & Inner product of $v$ and $u$ in the inner product space of $A$, $\langle v;u \rangle_A = \transp{v}Au$\\
+  $v \perp u$ & Vector $v$ is orthogonal to vector $v$ (i.e. $\langle v;u \rangle = 0$) \\
+  $I_n$      & Identity matrix of size $n \times n$, where $n$ may be omitted if obvious  \\
+  $e_i$      & The $i$-th unit vector \\
+  $\hat{x}$ & The hat denotes a numerical quantity (i.e. floating point precision) \\
+  $\rho(A)$ & Spectral radius of matrix $A$ (i.e. its largest absolute eigenvalue) \\
+  $span\langle \bm{v}_1, \bm{v}_2, \dots, \bm{v}_{n} \rangle$ & Space of vectors formed by the linear combinations of $\bm{v}_1, \bm{v}_2,\dots,\bm{v}_n$ \\
+  $\mathcal{K}_m$, $\mathcal{L}_m$ & Vector spaces consisting of $m$ basis vectors (i.e. $\mathcal{K}_m=span\langle \bm{v}_1, \dots, \bm{v}_{m} \rangle$) \\
+  $dim(\mathcal{K})$ & The number of basis vectors in a vector space (i.e. $dim(\mathcal{K}_m)=m$) \\
   $\kappa_{p}(A)$ & Norm-wise condition number of $A$ with respect to the $p$-norm \\
   $cond(A)$ & Component-wise condition number of $A$ \\
   $cond(A, x)$ & Component-wise condition number of the linear system $Ax=b$ \\
-  $A^{-1}$ & Inverse of matrix $A$ \\
-  $A^T$    & Transpose of matrix $A$ \\
-  $I$      & Identity matrix  \\
-  $u$      & unit roundoff of floating-point precision \\
-  $\hat{}\;$, e.g. $\hat{x}$ & denotes a calculated quantity (in floating point precision) \\
+  $u$      & Unit roundoff of floating-point precision \\
+  
   $\mathcal{O}$ & \\
-  $\iter{x}$ & is an iterate \\
-  $\mathcal{K}$ & subspace \\
-  $e_1$      & Einheitsvektor \\
+
 \end{tabular}
 \vspace{0.5cm}
 
