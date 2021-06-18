@@ -1,4 +1,4 @@
-\subsection{General Subspace Methods}
+\section{General Subspace Methods}
 \label{sec:subspace_methods}
 
 Consider a general linear system $Ax=b$ with $A \in \mathbb{R}^{n \times n}$. The main goal of a subspace based iterative method is to extract an approximate solution to such a system from a subspace of $\mathbb{R}^n$. Let $\mathcal{K}$ denote such a subspace of dimension $m$, containing all the approximate \textit{candidate solutions} for the system. To single out a desired candidate from this subspace, it is necessary to impose a number of constraints $m$, that such a solution needs to fulfill in order to be selected. Typically, those are $m$ (independent) orthogonality conditions, applied to the residual vector $r = Ax-b$. In other words, $r$ is required to be orthogonal to $m$ linearly independent vectors which define another subspace $\mathcal{L}$ of dimension $m$ such that $r \perp \mathcal{L}$.
@@ -17,7 +17,7 @@ Thus a subspace method aims to find an approximate solution $\iter[1]{x}\in \mat
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.7\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/subspace.pdf}
+    \includegraphics[width=0.7\linewidth]{figures/subspace.pdf}
     \caption{Interpretation of the orthogonality condition $\iter[0]{r} - A\delta \perp \mathcal{L}$ as described in \cite{saad_iterative_2003}}.
     \label{fig:subspace}
 \end{figure}
@@ -55,7 +55,7 @@ Thus a subspace method aims to find an approximate solution $\iter[1]{x}\in \mat
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.7\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/subspace2.pdf}
+    \includegraphics[width=0.7\linewidth]{figures/subspace2.pdf}
     \caption{Orthogonal projection $p$ of $v$ onto the subspace $\mathcal{K}$}.
     \label{fig:subspace2}
 \end{figure}
@@ -81,13 +81,13 @@ The second case, $\mathcal{L}=A\mathcal{K}$, is a little easier to interpret. It
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/projection_orthogonal.pdf}
+  \includegraphics[width=\linewidth]{figures/projection_orthogonal.pdf}
   \caption{Orthogonal projection process}
   \label{fig:projection_orthogonal}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/projection_oblique.pdf}
+  \includegraphics[width=\linewidth]{figures/projection_oblique.pdf}
   \caption{Oblique projection process}
   \label{fig:projection_oblique}
 \end{subfigure}
@@ -112,7 +112,7 @@ The second case, $\mathcal{L}=A\mathcal{K}$, is a little easier to interpret. It
 
 \noindent This type of method is termed \textit{error projection} and in terms of error analysis, it is equivalent to minimizing the backward error of the system (i.e. $\iter[1]{x}$ should be close to $x^*$). On the other hand, residual projection methods try to decrease the forward error of the system (i.e. $A\iter[1]{x}$ being close to $Ax^*=b$), both resulting in a good approximation of $x^*$. A detailed analysis of these error types is available from \cite{higham_accuracy_2002} and will not be discussed here any further. As a consequence of the discourse on projection methods, for the remainder of this thesis it will be assumed that $A$ meets the required characteristics for the selected method (i.e. $A$ is symmetric positive definite whenever $\mathcal{L}=\mathcal{K}$).
 
-\subsubsection{Steepest Descent}
+\subsection{Steepest Descent}
 \label{sec:steepest_descent}
 
 The method of steepest descent provides a simple example of an one-dimensional projection process. Such a projection is defined when $q$ and $v$ are two vectors and the subspaces are given by:
@@ -155,13 +155,13 @@ f(x) = \norm{x^*-\iter{x}}_A^2 = \langle A(x^*-\iter{x});(x^*-\iter{x})\rangle
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=0.9\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/steepest_descent.pdf}
+  \includegraphics[width=0.9\linewidth]{figures/steepest_descent.pdf}
   \caption{Steepest Descent}
   \label{fig:steepest_descent}
 \end{subfigure}%
 \begin{subfigure}{.5\textwidth}
   \centering
-  \includegraphics[width=0.9\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/mr.pdf}
+  \includegraphics[width=0.9\linewidth]{figures/mr.pdf}
   \caption{Minimal Residualm}
   \label{fig:mr}
 \end{subfigure}
@@ -170,9 +170,9 @@ f(x) = \norm{x^*-\iter{x}}_A^2 = \langle A(x^*-\iter{x});(x^*-\iter{x})\rangle
 \end{figure}
 
 
-\subsubsection{Minimal Residual (MR)}
+\subsection{Minimal Residual (MR)}
 \label{sec:mr}
-The minimal residual (MR) method is the counterpart to steepest descent for non-symmetric positive definite matrices. Therefore, $\mathcal{L}=A\mathcal{K}$ and as such, it takes a step with $q=r$ and $v=Ar$, giving rise to the procedure written in Algorithm~\hyperref[alg:mr]{\ref{alg:mr}}. The first iteration in this method is depicted in Figure~\hyperref[fig:mr]{\ref{fig:mr}}. Note that in the comparison to steepest descent (shown in Figure~\hyperref[fig:one_d_projections]{\ref{fig:one_d_projections}}), the first iteration leads to a slightly bigger decrease in the actual error $\iter[1]{d}$, but this does not necessarily hold for all linear systems. Related to the discussion about forward and backwards error mentioned previously, convergence generally depends on the stopping criterion set for the algorithm. Even in the symmetric case, MR could thus converge in less iterations than steepest descent. Thus, the choice of algorithm is actually dependent on the problem that needs to be solved. A more detailed comparison for methods derived from those two approaches is available in \cite{chin_cg_2012}. Although the actual algorithms used in this paper are more evolved, they optimize the problem with regards to the same error terms and it is expected that similar results can be obtained from a comparison of MR and steepest descent.
+The minimal residual (MR) method is the counterpart to steepest descent approach for non-symmetric positive definite matrices. Therefore, $\mathcal{L}=A\mathcal{K}$ and as such, it takes a step with $q=r$ and $v=Ar$, giving rise to the procedure written in Algorithm~\hyperref[alg:mr]{\ref{alg:mr}}. The first iteration in this method is depicted in Figure~\hyperref[fig:mr]{\ref{fig:mr}}. Note that in the comparison to steepest descent (shown in Figure~\hyperref[fig:one_d_projections]{\ref{fig:one_d_projections}}), the first iteration leads to a slightly bigger decrease in the actual error $\iter[1]{d}$, but this does not necessarily hold for all linear systems. Related to the discussion about forward and backwards error mentioned previously, convergence generally depends on the stopping criterion set for the algorithm. Even in the symmetric case, MR could thus converge in less iterations than steepest descent. Thus, the choice of algorithm is actually dependent on the problem that needs to be solved. A more detailed comparison for methods derived from those two approaches is available in \cite{chin_cg_2012}. Although the actual algorithms used in this paper are more evolved, they optimize the problem with regards to the same error terms and it is expected that similar results can be obtained from a comparison of MR and steepest descent.
  
 
 \begin{algorithm}[h]

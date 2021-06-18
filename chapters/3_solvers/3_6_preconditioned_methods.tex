@@ -1,0 +1,150 @@
+\section{Preconditioned Solvers}
+\label{sec:preconditioned_methods}
+
+After seeing the various options available as a preconditioner, it is natural to ask how the presence of a preconditioner transforms the workload of an iterative solver. This section will introduce the modified algorithms for CG and GMRES and discuss their implications. Furthermore, some approaches have been developed specifically with preconditioning in mind and their basic concepts will be summarized. As presented in Section~\hyperref[sec:preconditioners]{\ref{sec:preconditioners}} a general preconditoner takes the form $M=M_LM_R$ with:
+\begin{equation}
+    \inverse{M_L}A\inverse{M_R}y = \inverse{M_L}b\;\; \text{ with }\;\; x=\inverse{M_R}y
+\end{equation}
+
+\noindent Both \textit{left} ($M_L$) and \textit{right} ($M_R$) preconditioners can be employed in combination or independently of each other, depending on the solving technique and the linear system itself. Consider, for example that $A$ is symmetric and positive definite (and consequently CG can be applied). If the precondition matrix $M$ itself is symmetric and positive definite (as in the case of an incomplete Cholesky factorization) in the form of $M=C\transp{C}$, then a simple way to preserve this symmetry is given by:
+\begin{equation}
+    \inverse{C}A(\transp{C})^{-1}y = \inverse{C}b\;\; \text{ with }\;\; x=\inverse{(\transp{C})}y
+\end{equation}
+
+\noindent However, this splitting of the preconditioner is not strictly necessary in order to preserve symmetry. As illustrated in \cite{saad_iterative_2003}, $\inverse{M}A$ is self-adjoint for the $M$-inner product:
+\begin{equation}
+    \langle x;y \rangle_M = \langle Mx;y \rangle = \langle x;My \rangle
+\end{equation}
+
+\noindent because
+\begin{equation}
+    \langle \inverse{M}Ax;y \rangle_M = \langle Ax;y \rangle = \langle x;Ay \rangle=\langle x;M\inverse{M}Ay \rangle = \langle x;\inverse{M}Ay \rangle_M
+\end{equation}
+
+\noindent Therefore, in an alternative approach the Euclidean inner product can be replaces by the $M$-inner product in the CG algorithm. If the original residual is denoted as $\iter[m]{r}=A\iter[m]{x}-b$ and $\iter[m]{z}=\inverse{M}\iter[m]{r}$ is the residual for the preconditioned system, evaluating the $M$-inner product can be circumvented by noting that:
+\begin{equation}
+    \langle \iter[m]{z};\iter[m]{z} \rangle_M = \langle \iter[m]{r};\iter[m]{z} \rangle
+\end{equation}
+
+\noindent Based on this, the preconditioned CG variant is denoted Algorithm~\hyperref[alg:preconditioned_conjugate_gradient]{\ref{alg:preconditioned_conjugate_gradient}}, with the main change being the introduction of the vector $\iter[m]{z}$. The amount of work associated with this version is basically the same as the original, plus the additional cost of solving the preconditioned system (lines 2 \& 8).
+
+\begin{algorithm}[h]
+  \caption{Preconditioned Conjugate Gradient}
+  \label{alg:preconditioned_conjugate_gradient}
+  \SetAlgoLined
+  \DontPrintSemicolon
+  \KwIn{matrix $A \in \mathbb{R}^{n \times n}$, vector $b \in \mathbb{R}^{n}$ and initial solution $\iter[0]{x} \in \mathbb{R}^{n}$}
+  \KwOut{approximate solution $\iter[m]{x}$ to the system $Ax=b$\\
+  \hrulealg}
+  $\iter[0]{r} = b-A\iter[0]{x}$ \\
+  $\iter[0]{z} = \inverse{M}\iter[0]{r}$ \\
+  $p = \iter[0]{z}$ \\
+  \For{$k = 1$ \KwTo $m$} {
+    $\alpha = \langle \iter[k-1]{r};\iter[k-1]{z} \rangle / \langle Ap;p \rangle$ \\
+    $\iter{x} = \iter[k-1]{x}+\alpha p$ \\
+    $\iter{r} = \iter[k-1]{r} - \alpha Ap$ \\
+    $\iter{z} = \inverse{M}\iter{r}$ \\
+    $\beta = \langle \iter{r};\iter{z} \rangle / \langle \iter[k-1]{r};\iter[k-1]{z} \rangle$ \\
+    $p = \iter{z} + \beta p$ \\
+  }
+\end{algorithm}
+
+Most interestingly, a similar argument can be made for the right preconditioned variant and \cite{saad_iterative_2003} notes that all three (left, right and split) preconditioning approaches lead to the exact same iterates in this case. It needs to be remarked, however, that depending on the nature of the preconditioner and the properties of matrix $A$, more efficient implementations can be found if certain conditions are fulfilled. Additionally, for the non-symmetric case, left and right preconditioners are generally not equivalent and might affect performance and/or convergence of the algorithm, as will be discussed now on the example of GMRES.
+
+\noindent In the case of left preconditioning, the original linear system $Ax=b$ is replaces by:
+\begin{equation}
+    \inverse{M}Ax=\inverse{M}b
+\end{equation}
+
+\noindent Thus the implementation is straightforward, with the original residual being replaced by $\iter[m]{z}=\inverse{M}(A\iter[m]{x}-b)$ and the Krylov subspace now spanning:
+
+\begin{equation}
+    \mathcal{K}_m = \langle \iter[0]{r}, \inverse{M}A\iter[0]{r}, \dots, (\inverse{M}A)^{m-1}\iter[0]{r} \rangle
+\end{equation}
+
+\noindent Right preconditioning on the other hand, solves the system:
+\begin{equation}
+    A\inverse{M}y=b\text{, } \;\; y=Mx
+\end{equation}
+
+\noindent It is noteworthy that the initial residual of this system can be computes as:
+\begin{equation}
+    \iter[0]{z} = A\inverse{M}\iter[0]{y}-b = A\inverse{M}M\iter[0]{x}-b= A\iter[0]{x}-b
+\end{equation}
+
+\noindent As a consequence, the variable $y$ is not needed during the iteration at all, and only used to obtain the final solution. The algorithm resulting form this modifications is provided in Algorithm~\hyperref[alg:predonditioned_gmres]{\ref{alg:predonditioned_gmres}} and the Krylov subspace now spans:
+\begin{equation}
+    \mathcal{K}_m = \langle \iter[0]{r}, A\inverse{M}\iter[0]{r}, \dots, (A\inverse{M})^{m-1}\iter[0]{r} \rangle
+\end{equation}
+
+\begin{algorithm}[h]
+  \caption{Right-Preconditioned GMRES}
+  \label{alg:predonditioned_gmres}
+  \SetAlgoLined
+  \DontPrintSemicolon
+  \KwIn{non-singular matrix $A \in \mathbb{R}^{n \times n}$, vector $b \in \mathbb{R}^{n}$, initial solution $\iter[0]{x} \in \mathbb{R}^{n}$}
+  \KwOut{approximate solution $\iter[m]{x}$ to the system $Ax=b$\\
+  \hrulealg}
+  $\iter[0]{r} = b-A\iter[0]{x}$ \\
+  $\beta = \norm{\iter[0]{r}}_2$ \\
+  $\bm{q}_1 = \iter[0]{r}/\beta$ \\
+  \For{$k = 1$ \KwTo $m$} {
+    $w =A\inverse{M} \bm{q}_k$ \\
+    \For{$j = 1$ \KwTo $k$} {
+      $h_{j,k} = w^T\cdot \bm{q}_j$ \\
+      $ w = w - h_{j,k}\cdot \bm{q}_j$}
+    $h_{k+1,k} = \norm{w}_2$ \\
+    $\bm{q}_{k+1} = w/h_{k+1,k}$ \\
+  }
+  define $\tilde{H}_m = \{h_{k,j}\}, 1 \leq k \leq m+1, 1 \leq j \leq m$ \\
+  define $Q_m = \{\bm{q}_1, \cdots, \bm{q}_m\}$ \\
+  Find $y$ to minimize $\normd{\tilde{H}_my-\beta e_1}_2$ \\
+  $\iter[m]{x} = \iter[0]{x} + \inverse{M}Q_my$
+\end{algorithm}
+
+Most remarkably, the residual norm is now relative to the initial system, which is the main difference to the left preconditioned variant. More specifically, right preconditioning still minimizes the original residual $\iter[m]{r}$, while left preconditioning minimizes $\inverse{M}\iter[m]{r}$ instead. However, it is stated in \cite{saad_iterative_2003}, that in most practical situations, the difference in convergence behaviour between the two is not significant, unless $M$ is known to be very ill-conditioned. A similar argument can be made for the combination of both preconditioning versions in a single algorithm, noting that if $A$ is (nearly) symmetric, one might expect much better performance from such a symmetric preconditioner \cite{saad_iterative_2003}.
+
+\subsection{Flexible GMRES (FGMRES)}
+\label{sec:fgmres}
+
+In the methods introduced so far, it was inherently presumed that the preconditioning matrix $M$ remains fixed (i.e. does not change between the iterations). If it is assumed, however, that no such matrix $M$ is available and instead only the result of the operation $\inverse{M}x$ can be accessed (e.g. given by some unspecified calculations), then this presumption can not be taken for granted anymore, since it might not be a constant operator. In such a case, none of the previously discussed preconditioned procedures will converge anymore, but a number of variants have been developed in order to deal with such circumstances. These procedures, that allow the preconditioner to vary from step to step are usually called "flexible" methods and their general functionality will be illustrated on the example of flexible GMRES (FGMRES) as proposed by \cite{saad_flexible_1993}.
+
+FGMRES is derived from the right preconditioned GMRES (Algorithm~\hyperref[alg:predonditioned_gmres]{\ref{alg:predonditioned_gmres}}) by a few simple changes. First, note that the approximate solution $\iter[m]{x}$ is obtained as a linear combination of the preconditioned vectors $\bm{z}_k=\inverse{M}\bm{q}_k$ with $k=1,\dots, m$ (line 16). The only other place where these vectors are used is in line 5, for calculating $w$. Because they are all obtained using the same preconditioning matrix $M$, it is not necessary to save them. Assuming that the preconditioner now changes in every iteration, the most straightforward solution would be to store these vectors $\bm{z}_k=\inverse{M_k}\bm{q}_k$ and compute the approximate solution as:
+\begin{equation}
+    \iter[m]{x}= \iter[0]{x}+Z_my
+\end{equation}
+
+\begin{algorithm}[h]
+  \caption{FGMRES}
+  \label{alg:fgmres}
+  \SetAlgoLined
+  \DontPrintSemicolon
+  \KwIn{non-singular matrix $A \in \mathbb{R}^{n \times n}$, vector $b \in \mathbb{R}^{n}$, initial solution $\iter[0]{x} \in \mathbb{R}^{n}$}
+  \KwOut{approximate solution $\iter[m]{x}$ to the system $Ax=b$\\
+  \hrulealg}
+  $\iter[0]{r} = b-A\iter[0]{x}$ \\
+  $\beta = \norm{\iter[0]{r}}_2$ \\
+  $\bm{q}_1 = \iter[0]{r}/\beta$ \\
+  \For{$k = 1$ \KwTo $m$} {
+    $\bm{z}_k = \inverse{M_k}\bm{q}_k$ \\
+    $w =A \bm{z}_k$ \\
+    \For{$j = 1$ \KwTo $k$} {
+      $h_{j,k} = w^T\cdot \bm{q}_j$ \\
+      $ w = w - h_{j,k}\cdot \bm{q}_j$}
+    $h_{k+1,i} = \norm{w}_2$ \\
+    $\bm{q}_{k+1} = w/h_{k+1,k}$ \\
+  }
+  define $\tilde{H}_m = \{h_{k,j}\}, 1 \leq k \leq m+1, 1 \leq j \leq m$ \\
+  define $Q_m = \{\bm{q}_1, \cdots, \bm{q}_m\}$ \\
+  Find $y$ to minimize $\normd{\tilde{H}_my-\beta e_1}_2$ \\
+  $\iter[m]{x} = \iter[0]{x} + Z_my$
+\end{algorithm}
+
+\noindent The resulting changes are outlined in Algorithm~\hyperref[alg:fgmres]{\ref{alg:fgmres}} and it is clear that for the case $M_k=M$ with $k=1,\dots,m$, this is mathematically equivalent to right preconditioned GMRES. However, the relation $A\inverse{M}Q_m=Q_{m+1}\tilde{H}_m$ that holds for any constant $M$ needs to be replaced by:
+\begin{equation}
+    AZ_m=Q_{m+1}\tilde{H}_m
+\end{equation}
+
+\noindent As a result, the optimality property for FGMRES needs to be redefined, providing an approximate solution $\iter[m]{x}=\iter[0]{x}+Z_my$, which has the smallest residual norm in the space $\iter[0]{x}+span\langle Z_m\rangle$ (a proof for this is available form \cite{saad_iterative_2003}). Furthermore, since the subspace of the approximate solutions is no longer a standard Krylov subspace, convergence for this algorithm can not be proved for the general case. As another drawback, breakdown of the algorithm can occur for bad choices of $\bm{z}_k$, given the case that they are not linearly independent. 
+
+On the positive side, the only additional cost of the algorithm is the storage required to save the matrix $Z_m$, without any increase in computational complexity. Furthermore, as a consequence of removing the constant property of $M$, any iterative method can be used as a preconditioner. For example, it would be entirely possible to solve the preconditioned system (line 5) with GMRES (this is called an \textit{inner} iteration), while FGMRES is used for solving the whole system (referred to as the \textit{outer} iteration).

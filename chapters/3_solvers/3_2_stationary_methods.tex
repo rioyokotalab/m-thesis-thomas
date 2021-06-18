@@ -1,7 +1,9 @@
-\subsection{Stationary Iterative Methods}
+\section{Stationary Iterative Methods}
 \label{sec:stationary_methods}
 
-Many classical iterative methods belong into this category (see \cite{saad_iterative_2003} or \cite{golub_matrix_2013} for an exhaustive overview). They are typically based on an approximation to the original matrix $A$ and a measurement for the error in the result (the \textit{residual}). They then step from one approximate solution to the next, by modifying only one or a few components of the vector at at time. Those methods usually use very simple criteria for determining modifications that are able to improve the solution. One such example is to annihilate some component(s) of the residual vector $r=Ax -b$. 
+The goal of an iterative method is to generate a sequence of increasingly accurate approximate solutions $\iter{x}$ for a linear system $Ax=b$. In such a framework, the main goal is to replace the dense matrix $A$ by a matrix $M$ that is easier to solve (i.e. has a reduced complexity). This can either be achieved by a reduced size, or special characteristics that allow for solving in $\mathcal{O}(n^2)$ or $\mathcal{O}(n)$. Typically, in such a framework, the original matrix $A$ is then only involved in terms of matrix-vector multiplications, which can be calculated in order of $\mathcal{O}(n^2)$ as well. Therefore, as long as a desired accuracy can be achieved by a short sequence of approximate solutions, iterative methods can be considerably faster than direct ones (which require $\mathcal{O}(n^3)$). Depending on the general idea behind the creation of such matrix $M$, several different iterative methods can be distinguished. A summary of those approaches together with the most popular methods for each of them, will be provided in the following sections.
+
+Many classical iterative methods belong into the category of stationary iterative solvers (see \cite{saad_iterative_2003} or \cite{golub_matrix_2013} for an exhaustive overview). They are typically based on an approximation to the original matrix $A$ and a measurement for the error in the result (the \textit{residual}). They then step from one approximate solution to the next, by modifying only one or a few components of the vector at at time. Those methods usually use very simple criteria for determining modifications that are able to improve the solution. One such example is to annihilate some component(s) of the residual vector $r=Ax -b$. 
 
 For a general analysis, it can be observed that most of the algorithms in this class are based on a splitting of the original matrix $A$, that takes the form of:
 \begin{equation}
@@ -37,7 +39,7 @@ For a general analysis, it can be observed that most of the algorithms in this c
 
 \noindent Note that this is equivalent to $\norm{G}_q<1$, for any choice of norm $q$. The proof for this formula can be obtained from \cite{golub_matrix_2013}, who conclude that despite being easy to implement and analyze, convergence for such methods is only guaranteed for a limited set of matrices.
 
-\subsubsection{Jacobi}
+\subsection{Jacobi}
 The most straightforward form of such a stationary iterative method can be obtained if $M$ is selected to be simply the diagonal of the matrix $A$. This is called the Jacobi method or Jacobi iteration \cite{golub_matrix_2013}. It is based on the concept of solving the $i$-th equation of the linear system for the variable $x_i$. Illustrated on a simple $3 \times 3$ case, such a system takes the following form:
 \begin{equation}
   \left[
@@ -95,14 +97,14 @@ For the general $n \times n$ case, the matrix splitting performed by the Jacobi 
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.4\linewidth]{chapters/3_solvers/3_2_iterative_solvers/figures/Splitting.pdf}
+    \includegraphics[width=0.4\linewidth]{figures/Splitting.pdf}
     \caption{Initial partitioning of matrix $A$}
     \label{fig:splitting}
 \end{figure}
 
 \noindent Since $A = M -N = D - (L +U)$, it fits the general form (see Equation~\hyperref[eqn:convergence]{\ref{eqn:convergence}}) and the same convergence criteria for the iteration matrix $G=D^{-1}(L+U)$ are applicable.
 
-\subsubsection{Gauss-Seidel}
+\subsection{Gauss-Seidel}
 One disadvantage of the Jacobi iteration is that it does not fully exploit the most recent solution estimate in Equation~\hyperref[eqn:jacobi_3x3]{\ref{eqn:jacobi_3x3}}. For example, even though $\iter{x_1}$ was already computed, it is not used for updating $\iter{x_2}$ (which still relies on $\iter[k-1]{x_1}$ instead). The Gauss-Seidel method addresses this issue by defining (again, illustrated here for the $3 \times 3$ case):
 
 \begin{equation}
@@ -127,7 +129,7 @@ One disadvantage of the Jacobi iteration is that it does not fully exploit the m
 
 While the same convergence criteria as for the general case apply (see Equation~\hyperref[eqn:convergence]{\ref{eqn:convergence}}), \cite{venit_convergence_1975} notes that Gauss-Seidel performs better than Jacobi in many cases of practical interest, even though faster convergence is not guaranteed for the general case. However, on modern architectures Jacobi's method has the advantage of being easily parallelizable, since the updates for each component $x_i$ can be performed independently. On the contrary, each component depends on the previous one in the Gauss-Seidel algorithm making it difficult to implement efficiently in a parallel setting.
 
-\subsubsection{Successive Over-Relaxation (SOR)}
+\subsection{Successive Over-Relaxation (SOR)}
 The convergence of the stationary methods discussed so far is not only limited by $\rho(G)<1$ (where $G=M^{-1}N$), the spectral radius also defines their speed of convergence. If $\rho(G)$ is close to unity, those methods might need a high number of iterations before convergence, making them prohibitively slow in practice. This concern, is addressed by the method of successive over-relaxation (SOR), introducing the parameterized splitting:
 \begin{equation}
     A=M_\omega - N_\omega
