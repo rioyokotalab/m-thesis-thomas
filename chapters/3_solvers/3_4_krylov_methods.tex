@@ -209,7 +209,7 @@ AQ_m=Q_{m+1}\tilde{H}_m
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.6\linewidth]{figures/Arnoldi.pdf}
-    \caption{The least squares polynomial approximation problem underlying the Arnoldi iteration as described in \cite{trefethen_numerical_1997}.}
+    \caption[Arnoldi - Least Squares Approximation]{The least squares polynomial approximation problem underlying the Arnoldi iteration as described in \cite{trefethen_numerical_1997}.}
     \label{fig:arnoldi}
 \end{figure}
 
@@ -303,7 +303,7 @@ The minimal residual method (MINRES) has been developed by \cite{paige_solution_
 
 \noindent The approximate solution for the $m$-th Krylov subspace is then given by (where $Q_m$ is created by the Lanczos process):
 \begin{equation}
-    \iter[m]{x} = \iter[0]{x} + Q_m U_m^{-1}L_m^{-1}(\beta_1 e_1)
+    \iter[m]{x} = \iter[0]{x} + Q_m U_m^{-1}L_m^{-1}(\beta e_1)
 \end{equation}
 
 \noindent This can then be used as an alternative formulation of the CG algorithm (although it should be noted that the previous formulation by \cite{hestenes_methods_1952} performs better in terms of storage and computing complexity). The pseudo-code for this version of the algorithm as well as the full derivation and proof of equality can be obtained from \cite{saad_iterative_2003}. However, if Gaussian elimination without pivoting is used, this algorithm is susceptible to breakdown. In \cite{paige_solution_1975}, the LQ factorization is suggested instead, giving rise to an algorithm named SYMMLQ, that can be used for indefinite symmetric problems. Unfortunately, as the main drawback of this proposal, the $A$-norm of the error is no longer minimized, which can lead to a non-monotonic convergence. Therefore, in the same paper \cite{paige_solution_1975}, an extension called MINRES was proposed, that, as the name suggest, minimizes the norm of the residual instead.
@@ -412,7 +412,7 @@ The generalized minimal residuals (GMRES) method can be viewed as an extension o
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.7\linewidth]{figures/GMRES.pdf}
-    \caption{The least squares polynomial approximation problem underlying the GMRES (minimizing $\norm{\iter[m]{r}}_2$), as described in \cite{trefethen_numerical_1997}}.
+    \caption[GMRES - Least Squares Approximation]{The least squares polynomial approximation problem underlying the GMRES (minimizing $\norm{\iter[m]{r}}_2$), as described in \cite{trefethen_numerical_1997}}.
     \label{fig:gmres}
 \end{figure}
 
@@ -518,10 +518,10 @@ A disadvantage of both variants of the algorithm is that they do not provide the
     \tilde{R}_m = V_m\tilde{H}_m 
 \end{equation}
 \begin{equation}
-        \tilde{g}_m = V_m(\beta_1 e_1) = (\gamma_1, \cdots, \gamma_{m+1})^T
+        \tilde{g}_m = V_m(\beta e_1) = (\gamma_1, \cdots, \gamma_{m+1})^T
 \end{equation}
 
-\noindent Thus, the problem can be reformulated as $min(\normd{\beta_1 e_1 -\tilde{H}_my}_2=min(\normd{\tilde{g}_m -\tilde{R}_my}_2)$, thanks to $V_m$ being unitary. A detailed proof for this equation is given in \cite{saad_iterative_2003}. The big advantage of this method is not only that $\tilde{R}_m$ is triangular (and hence easily solvable), but also that the current residual (i.e. at step $k$) is readily available as $\gamma_{k+1}$.
+\noindent Thus, the problem can be reformulated as $min(\normd{\beta e_1 -\tilde{H}_my}_2=min(\normd{\tilde{g}_m -\tilde{R}_my}_2)$, thanks to $V_m$ being unitary. A detailed proof for this equation is given in \cite{saad_iterative_2003}. The big advantage of this method is not only that $\tilde{R}_m$ is triangular (and hence easily solvable), but also that the current residual (i.e. at step $k$) is readily available as $\gamma_{k+1}$.
 
 Having obtained a satisfactory criterion to determine convergence, it is natural to ask for the upper bound on the number of iterations required by GMRES. Following the analysis in \cite{trefethen_numerical_1997}, we can observe that the algorithm converges monotonically, since $\norm{\iter[k]{r}}_2$ is minimal for the subspace $\mathcal{K}_k$, it can only decrease (or, at worst remain unchanged) by enlarging the space to $\mathcal{K}_{k+1}$.
 \begin{equation}
@@ -607,7 +607,7 @@ This approach extends the Lanczos iteration to non-symmetric matrices by relaxin
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.3\linewidth]{figures/biorthogonal.pdf}
-    \caption{Biorthogonal matrices $V$ and $W$ in the 2-dimensional case and $m=2$.}
+    \caption[Biorthogonalization]{Biorthogonal matrices $V$ and $W$ in the 2-dimensional case and $m=2$.}
     \label{fig:biorthogonal}
 \end{figure}
 

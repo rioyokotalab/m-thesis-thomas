@@ -1,0 +1,58 @@
+\section{Matrix Rank}
+\label{sec:matrix_rank}
+
+Consider a matrix $A \in \realx{n}$ and a vector $v \in \real$. The range of the matrix $A$ is then defined as the result of multiplying it with any such vector $v$ and the \textit{rank} is given by the dimension of the range \cite{bebendorf_hierarchical_2008}. In other words, the matrix $A$ transforms a vector $v$ into a vector space defined by all possible linear combinations of its column vectors. Thus the dimension of the range is equal to the dimension of its column space. This corresponds to the number of basis vectors in the column space of $A$ and thus an equivalent description of the rank is given by "the number of linearly independent columns of $A$". For example, let $n=3$ and
+\begin{equation}
+\label{eqn:low_rank}
+ A= \left[
+    \begin{array}{ccc}
+      4 & -2 & 2 \\
+      3 & 1 & 4  \\
+      0 & 7 & 7  \\
+    \end{array}
+  \right]
+\end{equation}
+
+\noindent In this case, it is clear that $\bm{a}_3=\bm{a}_1+\bm{a}_2$ and thus $rank(A)=3$. It is a fundamental result of linear algebra that the dimension of the column and row space of a matrix is always equal (see \cite{strang_introduction_2009}) and hence another definition of the rank as "the number of linearly independent rows of $A$" is obtained. \cite{bebendorf_hierarchical_2008} lists the following well-known relations for the rank:
+\begin{itemize}
+    \item $rank(A) \leq min(m,n)$ for all $A \in \realx[m]{n}$
+    \item $rank(AB) \leq min(rank(A), rank(B))$ for all $A \in \realx[m]{k}$ and all $B \in \realx[k]{n}$
+    \item $rank(A+B) \leq rank(A)+rank(B)$ for all $A,B \in \realx[m]{n}$
+\end{itemize}
+
+Furthermore, a matrix $A \in \realx[m]{n}$ with $rank(A)=k < min(m,n)$ is called a rank deficient or \textit{low-rank} matrix. Interpreted geometrically, such a low-rank matrix will project a vector $v \in \real$ into a subspace $\real[k]$ instead of $\real[m]$ (for a full rank matrix), where $k<m$. Thus the matrix in Equation~\hyperref[eqn:low_rank]{\ref{eqn:low_rank}} will project any vector from the three-dimensional space into the two-dimensional plane spanned by its first two column vectors. Consequently, such a low-rank matrix does not have an inverse and its determinant is zero. Due to the linear dependencies between the columns of such a low-rank matrix, it can be fully represented by a product of two matrices $U \in \realx[m]{k}$ and $V \in \realx[k]{n}$. Taking the matrix from Equation~\hyperref[eqn:low_rank]{\ref{eqn:low_rank}}, for example, it can alternatively be denoted as:
+\begin{equation}
+\label{eqn:low_rank}
+ A= \left[
+    \begin{array}{cc}
+      4 & -2  \\
+      3 & 1   \\
+      0 & 7   \\
+    \end{array}
+  \right] \cdot
+  \left[
+    \begin{array}{ccc}
+      1 & 0 & 1 \\
+      0 & 1 & 1  \\
+    \end{array}
+  \right]
+ =
+ \left[
+    \begin{array}{ccc}
+      4 & -2 & 2 \\
+      3 & 1 & 4  \\
+      0 & 7 & 7  \\
+    \end{array}
+  \right]
+\end{equation}
+
+\noindent Of course, this alternative formulation is only beneficial if the rank $k$ is considerably smaller than the original dimensions $m$ and $n$ since the storage complexity changes from $\mathcal{O}(nm)$ to $\mathcal{O}(k(n+m))$. Despite this promising characteristic, exact low-rank representations are hardly used in practice, because true rank deficient matrices are scarce. Even if one would be lucky enough to encounter a problem that is theoretically low-rank, real world data is almost always noisy when represented on a computer and combined with the limited precision available in floating point formats, the digital representation will almost certainly not retain that property. 
+
+The solution is presented in the form of \textit{numerically} low-rank matrices. The most intuitive explanation is that numerically low-rank matrices are almost of low-rank (i.e. instead of $A=UV$ we have $A \approx UV$). In other words, such a matrix would still project a vector $v \in \real[n]$ into the space of $\real[m]$, but a close enough approximate vector $w \in \real[k]$ could be found such that $v \approx w$. Using the example of the three-dimensional matrix from above, it will not be a projection into a two-dimensional plane, but the vector space will take the form of a sheet or a tile, with an extremely limited thickness. The fundamental assumption is that the extent in some dimensions will be negligible in comparison to others, making it possible to remove the corresponding bases from the vector space without sacrificing too much accuracy. In mathematical terms, this extent is of course represented by the eigenvalues (or their square root, the singular values) and thus it makes sense to remove the information corresponding to the eigenvalues with the lowest magnitude from the representation. One way to obtain such a factorization is by computing a singular value decomposition (SVD) and then truncating the result down to the $k$ largest singular values.
+
+In the context of this thesis, a low-rank approximation is thus defined defined as a matrix $M$ of rank $r$ (i.e. $rank(M)=r$), such that $\norm{A-M}_2 \leq \epsilon\norm{M}_2$, where $\epsilon$ is a pre-defined error threshold. Consequently, the numerical low-rank property is given by:
+\begin{equation}
+    rank(A,\epsilon) = r
+\end{equation}
+
+\noindent Since the research in this thesis is entirely dedicated to the numerical solution of large linear systems, equality between those two definitions (for a suitable $\epsilon$) will be assumed such that $rank(A) = rank(A,\epsilon)$ for the remainder of this work.

@@ -26,6 +26,7 @@
   $span\langle \bm{v}_1, \dots, \bm{v}_{n} \rangle$ & Vector space formed by the linear combinations of $\bm{v}_1,\dots,\bm{v}_n$ \\
   $\mathcal{K}_m$, $\mathcal{L}_m$ & Vector spaces of $m$ basis vectors,  $\mathcal{K}_m=span\langle \bm{v}_1, \dots, \bm{v}_{m} \rangle$ \\
   $dim(\mathcal{K})$ & The number of basis vectors in a vector space (i.e. $dim(\mathcal{K}_m)=m$) \\
+  $rank(A)$ & The dimension of the column space of $A$ (i.e. the rank)\\
   $\kappa_{p}(A)$ & Norm-wise condition number of $A$ with respect to the $p$-norm \\
   $cond(A)$ & Component-wise condition number of $A$ \\
   $cond(A, x)$ & Component-wise condition number of the linear system $Ax=b$ \\
@@ -34,24 +35,3 @@
 
 \end{tabular}
 \vspace{0.5cm}
-
-\noindent A linear system is denoted by
-\begin{equation}
-\label{eqn:linear_system}
-    Ax=b
-\end{equation}
-\noindent where $A \in \mathbb{R}^{n \times n}$ is called the \textit{coefficient matrix}, $b \in \mathbb{R}^{n}$ is the \textit{right-hand side} vector and $x \in \mathbb{R}^{n}$ is the \textit{vector of unknowns}. The task of solving a linear system is then reduced to finding a vector $x$ for a given input $A$ and $b$ such that Equation~\hyperref[eqn:linear_system]{\ref{eqn:linear_system}} is satisfied.
-
-\noindent Regarding the calculation of the condition numbers for such a system, the following formula is given for the norm-wise condition number by \cite{higham_accuracy_2002}:
-\begin{equation}
-\kappa_{p}(A) = \norm{A^{-1}}_p\norm{A}_p
-\end{equation}
-
-\noindent Formulas for the component-wise condition numbers are provided by \cite{skeel_scaling_1979}:
-\begin{equation}
-cond(A) = \norm{|A^{-1}||A|}_\infty \leq \kappa_{\infty}(A)
-\end{equation}
-\begin{equation}
-cond(A,x) = \frac{\norm{|A^{-1}||A||x|}_\infty}{\norm{x}_\infty}
-\end{equation}
-\noindent where $|A| = |A_{i,j}|$ and $|x| = |x_{i}|$. These condition numbers represent how sensitive the solution of the linear system reacts to small norm-wise and component-wise perturbations \cite{higham_accuracy_2002}. 
