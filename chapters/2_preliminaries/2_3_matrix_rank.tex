@@ -20,9 +20,9 @@ Consider a matrix $A \in \realx{n}$ and a vector $v \in \real$. The range of the
     \item $rank(A+B) \leq rank(A)+rank(B)$ for all $A,B \in \realx[m]{n}$
 \end{itemize}
 
-Furthermore, a matrix $A \in \realx[m]{n}$ with $rank(A)=k < min(m,n)$ is called a rank deficient or \textit{low-rank} matrix. Interpreted geometrically, such a low-rank matrix will project a vector $v \in \real$ into a subspace $\real[k]$ instead of $\real[m]$ (for a full rank matrix), where $k<m$. Thus the matrix in Equation~\hyperref[eqn:low_rank]{\ref{eqn:low_rank}} will project any vector from the three-dimensional space into the two-dimensional plane spanned by its first two column vectors. Consequently, such a low-rank matrix does not have an inverse and its determinant is zero. Due to the linear dependencies between the columns of such a low-rank matrix, it can be fully represented by a product of two matrices $U \in \realx[m]{k}$ and $V \in \realx[k]{n}$. Taking the matrix from Equation~\hyperref[eqn:low_rank]{\ref{eqn:low_rank}}, for example, it can alternatively be denoted as:
+Furthermore, a matrix $A \in \realx[m]{n}$ with $rank(A)=k < min(m,n)$ is called a rank deficient or \textit{low-rank} matrix. Interpreted geometrically, such a low-rank matrix will project a vector $v \in \real$ into a subspace $\real[k]$ instead of $\real[m]$ (for a full rank matrix), where $k<m$. Thus the matrix in Equation~\hyperref[eqn:low_rank_example]{\ref{eqn:low_rank_example}} will project any vector from the three-dimensional space into the two-dimensional plane spanned by its first two column vectors. Consequently, such a low-rank matrix does not have an inverse and its determinant is zero. Due to the linear dependencies between the columns of such a low-rank matrix, it can be fully represented by a product of two matrices $U \in \realx[m]{k}$ and $V \in \realx[k]{n}$. Taking the matrix from Equation~\hyperref[eqn:low_rank_example]{\ref{eqn:low_rank_example}}, for example, it can alternatively be denoted as:
 \begin{equation}
-\label{eqn:low_rank}
+\label{eqn:low_rank_example}
  A= \left[
     \begin{array}{cc}
       4 & -2  \\

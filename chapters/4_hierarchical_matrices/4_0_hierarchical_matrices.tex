@@ -1,5 +1,11 @@
 \chapter{Hierarchical Low-Rank Approximations}
 \label{chap:hierarchical_matrices}
 
-\import{}{4_1_matrix_formats.tex}
-\import{}{4_2_matrix_operations.tex}
+Even though, as stated in Section~\hyperref[sec:matrix_rank]{\ref{sec:matrix_rank}}, real low-rank matrices are rarely encountered in numerical computing, that does not necessarily mean it is impossible to benefit from such techniques. Generally speaking, matrix-operations on low-rank factorization can be done much more efficiently than with regular dense linear algebra, if the rank $k$ is low enough. However, trying to approximate a full-rank matrix with such a suitable $k$, usually leads to an approximation error that is deemed too large for most application. Hierarchical low-rank approximations try to bridge the gap between those two representations by offering the efficiency of low-rank computations, while keeping the error at a tolerable (and controllable) level.
+
+By subdividing a matrix into appropriate sub-blocks, it is often the case that low-rank submatrices can be found within such a structure, even if the original matrix was of full rank. Especially after rearranging the columns and/or rows of such a matrix, it is possible to find such an underlying low-rank structure. By using low-rank approximations for the representation of such sub-blocks, operations can be greatly accelerated while maintaining a relatively small error term. Since such techniques require a certain structure of the original matrix, they are often called structured low-rank matrix formats and their advantages will be discussed in this chapter.
+
+
+\import{}{4_1_matrix_partition.tex}
+\import{}{4_2_matrix_formats.tex}
+\import{}{4_3_matrix_operations.tex}
