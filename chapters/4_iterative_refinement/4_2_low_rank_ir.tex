@@ -1,2 +1,43 @@
 \section{IR with Low-Rank Preconditioner}
 \label{sec:low_rank_ir}
+
+The main observations from the previous section can be summarized as follows:
+\begin{itemize}
+    \item A linear system can be solved with a norm-wise backward error of order $u$, if the condition number $kappa_\infty(A)u$ is sufficiently less than one.
+    \item A similar result can be shown for the component-wise backward error as long as $cond_\infty(A)u \ll 1$ is satisfied.
+    \item The preconditioned system $ \hat{U}^{-1}\hat{L}^{-1}A\iter[k]{d}=\hat{U}^{-1}\hat{L}^{-1}\iter[k]{r}$ can be solved with a backward error of order $u$ even if the factorization is computed in half the working precision (i.e. $u=u_f^2$).
+\end{itemize}
+
+\noindent Consequently, the conclusion can be drawn that similar results could be achieved by any preconditioner $M$ satisfying the condition:
+\begin{equation}
+    \kappa(M^{-1}A)\lesssim 1 + \kappa(A)u
+\end{equation}
+
+\noindent Instead of a low-precision floating-point LU factorization \cite{higham_new_2019} propose a more general framework, incorporating ILU (for sparse matrices) and BLR LU factorization. As detailed in Section~\hyperref[sec:blr]{\ref{sec:blr}}, the BLR format has the advantage that a LU decomposition can be computed in $\mathcal{O}(n^2)$, while being able to control the error of the factorization by a threshold parameter $\tau$. Especially for large matrix sizes, such an approach becomes increasingly attractive, since a runtime $\mathcal{O}(n^3)$ might still be prohibitively expensive, even when calculated at half the working precision. 
+
+However, their framework does not use the LU factors directly, but instead extends them by a low-rank approximation to the factorization error. This approach is motivated by the observation that the error matrix of an approximate LU decomposition is likely to have a low numerical rank when $A$ is ill-conditioned. This error matrix $E$ is defined as:
+\begin{equation}
+    E=\hat{U}^{-1}\hat{L}^{-1}A-I
+\end{equation}
+
+\noindent Let the preconditioner be defined as $M=\hat{L}\hat{U}$, then the experiments conducted in \cite{higham_new_2019} indicate that the singular values of $M$ are usually of the same order of magnitude as those of $A$ and $A^-1$ has numerically low-rank for all tested matrices. $M^{-1}$ is expected to retain this low rank property since, given that $A=M+\Delta A \in \realx{n}$ is non-singular, the rank $k$ accuracy of $M^{-1}$ satisfies:
+\begin{equation}
+    \epsilon_k(M^{-1}) \leq \alpha\beta\epsilon_k(A^{-1})\text{,} \;\; \text{ with } \;\; 1\leq k \leq n
+\end{equation}
+
+\noindent In this formula the variables $\alpha$ and $\beta$ are defined such that $\alpha=1+\norm{A^{-1}\Delta A}_2$ and $\beta=1+\norm{M^{-1}\Delta A}_2$. By defining another variable $mu$, a bound on the error matrix $E=M^{-1}\Delta A$ can be found such that $\mu$ is given by:
+\begin{equation}
+    \mu=\frac{\normd{M^{-1}}_2\normd{\Delta A}_2}{\normd{M^{-1}\Delta A}_2}
+\end{equation}
+
+\noindent This results in the error bound:
+\begin{equation}
+    \epsilon_k(E) \leq \mu\alpha\beta\epsilon_k(A^{-1})\text{,} \;\; \text{ with } \;\; k \leq n
+\end{equation}
+
+\noindent Hence, the error $E$ retains the low-rank property of $M^{-1}$ as long as $\mu$, $\alpha$ and $\beta$ are not too large. Due to this characteristic, the rank $k$ approximation of the error $E_k$ can be used as an extension to the preconditioner if the accuracy of the computed LU factors is too low or the matrix $A$ is very ill-conditioned. The preconditioner proposed by \cite{higham_new_2019} takes the following form:
+\begin{equation}
+    M = (I + E_k)^{-1}\hat{U}^{-1}\hat{L}^{-1}
+\end{equation}
+
+\noindent To the author's best knowledge no attempt has been made yet to evaluate a BLR-based preconditioner in the context of iterative refinement in the absence of this error matrix extension. The goal of this thesis is to close this gap in available research results by examining the behaviour of iterative refinement in the presence of an approximate LU factorization obtained from hierarchical matrix formats such as BLR. Since it is known that for these matrix layouts factorizations are at least an order of magnitude faster than for dense matrices, they might be able to reduce the total cost of IR significantly.

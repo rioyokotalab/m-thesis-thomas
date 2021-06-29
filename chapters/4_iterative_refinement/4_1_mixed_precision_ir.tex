@@ -1,2 +1,125 @@
 \section{IR with Mixed Precision}
 \label{sec:low_precision_ir}
+
+In traditional iterative refinement (see \cite{wilkinson_rounding_1963}), the initial approximate solution $\iter[0]{x}$ is obtained via Gaussian elimination, saving the factorization $A=LU$ for later usage. The residual is then calculated at twice the working precision, which corresponds to $u_f=u$ and $u_r=u^2$. The LU factors are then reused in solving the correction equation according to $A\iter[k]{d} = LU\iter[k]{d} = \iter[k]{r}$ and thus $u_s=u$. According to \cite{carson_accelerating_2018}, this method was in common use up until the 1970s because the accumulation of inner products at twice the working precision could be performed efficiently on many computing architectures of that era. Even though this was later adapted into a fixed-precision algorithm (i.e. $u_f=u_s=u=u_r$), that can be found in many numerical libraries such as LAPACK \cite{anderson_lapack_1999}, the method was originally invented in the context of mixed precision calculations.
+
+The mixed precision formulation was later rediscovered and analyzed by \cite{langou_exploiting_2006} with respect to single/double floating-point formats. Based on the observation that single precision arithmetic can be computed at (at least) twice the speed of double precision arithmetic on modern hardware, the initial solution is obtained in single precision and then incrementally refined to achieve double floating-point accuracy. In other words, $u_f$ and $u_s$ are equal to single precision, while $u$ and $u_r$ are stored/calculated in double precision. The pseudo-code for the resulting algorithm is provided in Algorithm~\hyperref[alg:ir_single_double]{\ref{alg:ir_single_double}}.
+
+\begin{algorithm}[h]
+  \caption{Iterative refinement in two precisions}
+  \label{alg:ir_single_double}
+  \SetAlgoLined
+  \KwIn{matrix $A \in \realx{n}$; vector $b \in \real$; iteration\# $k_{max}$; tolerance $\epsilon_{max}$}
+  \KwOut{approximate solution $\iter[k]{x}$ to $Ax=b$}
+  compute the factorization $A=LU$ in single precision \\
+  solve $LU\iter[0]{x}=b$ in single precision $u_f$ and store in double precision \\
+  \For{$k = 1$ \KwTo $k_{max}$} {
+    compute $\iter[k]{r} = b-A\iter[k]{x}$ in double precision  \\
+    \If{$\normd{\iter[k]{r}}_p) \leq \epsilon_{max}$}{\Return $\iter[k]{x}$}
+    solve $LU\iter[k]{d}=\iter[k]{r}$ in single precision \\
+    $\iter[k+1]{x}=\iter[k]{x}+\iter[k]{d}$ in double precision}
+  \% iteration has not converged
+\end{algorithm}
+
+However, if the matrix $A$ is very ill conditioned, this algorithm might be very slow to converge or may not converge at all. According to \cite{carson_accelerating_2018}, all existing results on the convergence of LU based iterative refinement require the condition number of $A$ to be safely less than $u^{-1}$ for the algorithm to work. For the general rounding analysis of iterative refinement conducted by \cite{higham_accuracy_2002}, concludes that convergence is only guaranteed if $\kappa_\infty(A)\leq u^{-1}$ for such a case. Nevertheless, even if the computed LU factors are not accurate enough for a direct solving approach, they, still contain useful information. Let $\hat{L}$ and $\hat{U}$ denote those factors obtained from a LU factorization with partial pivoting. It is shown by \cite{carson_new_2017}, that even if $\kappa_\infty(A) \gg u^{-1}$, those factors still contain enough information to be useful as a preconditioner, since:
+\begin{equation}
+    \kappa(\hat{U}^{-1}\hat{L}^{-1}A)\approx 1 + \kappa(A)u
+\end{equation}
+
+\noindent Thus, the condition number of the preconditioned systems can be expected to be reasonably low and by changing the solver in line 8 of Algorithm~\hyperref[alg:ir_single_double]{\ref{alg:ir_single_double}}, better results might be achieved. Indeed, it is demonstrated in \cite{carson_new_2017}, that the convergence of iterative refinement hinges entirely on the error induced when solving for the correction term $\iter[k]{d}$ in $A\iter[k]{d} = \iter[k]{r}$. From this point of view, it becomes to possible to bound the convergence behaviour by the error of the correction term. The condition is given in \cite{carson_new_2017} as:
+\begin{equation}
+\label{eqn:ir_error}
+    \frac{\normd{\iter[k]{d}-\iter[k]{\hat{d}}}_\infty}{\normd{\iter[k]{d}}_\infty} =\iter[k]{\theta}u\text{,} \;\;\text{with} \;\; \iter[k]{\theta}u\leq 1
+\end{equation}
+
+\noindent In this equation, $\iter[k]{\theta}$ is a constant depending on $A$, $\iter[k]{r}$, $n$, and $u$ and if this condition is satisfied, the algorithm will converge as long as:
+\begin{equation}
+  2\iter[k]{\mu}_\infty\kappa_\infty(A)u+\iter[k]{\theta}u<1
+\end{equation}
+
+\noindent where $\iter[k]{\mu}_\infty$ is defined as:
+\begin{equation}
+\normd{A(x-\iter[k]{x})}_p = \iter[k]{\mu}_p \normd{A}_p\normd{x-\iter[k]{x}}_p
+\end{equation}
+
+\noindent The term $2\iter[k]{\mu}_\infty\kappa_\infty(A)u$ is essentially a condition on the iteration and $\iter[k]{\mu}_\infty \ll 1$ can be expected  for ill-conditioned systems (at least in the early stages of the refinement, see \cite{carson_new_2017}). In other words, a norm-wise relative error of order $u$ can be expected as long as $cond_\infty(A,x)u_r \lesssim u$. Using these results, \cite{carson_new_2017} propose a modified GMRES variant that can be used to solve the correction equation in such a way that Equation~\hyperref[eqn:ir_error]{\ref{eqn:ir_error}} is satisfied and an accurate solution can be obtained even for ill-conditioned systems.
+Their method uses the computed LU factors as a left preconditioner so that GMRES solves the preconditioned system:
+\begin{equation}
+    \hat{U}^{-1}\hat{L}^{-1}A\iter[k]{d}=\hat{U}^{-1}\hat{L}^{-1}\iter[k]{r}
+\end{equation}
+
+\noindent Note that in order for this method to work, the preconditioner must be applied in the precision of the residual $u_r$, which needs to satisfy $u_r=u^2$. Thus, the proposed GMRES modification needs to calculate the triangular solves involving $\hat{L}$ and $\hat{U}$ as well as the matrix-vector multiplications with $A$ in precision $u_r$, while the remainder of the operations is performed in precision $u$. This approach was later refined in \cite{carson_accelerating_2018} to iterative refinement in three precisions, both for a GMRES as well as a LU based solver. The pseudo-code for GMRES based iterative refinement (GMRES-IR) is shown in Algorithm~\hyperref[alg:gmres_ir]{\ref{alg:gmres_ir}}, while the LU based variant is identical to Algorithm~\hyperref[alg:iterative_refinement]{\ref{alg:iterative_refinement}}.
+
+\begin{algorithm}[h]
+  \caption{GMRES-IR}
+  \label{alg:gmres_ir}
+  \SetAlgoLined
+  \KwIn{matrix $A \in \realx{n}$; vector $b \in \real$; iteration\# $k_{max}$; tolerance $\epsilon_{max}$}
+  \KwOut{approximate solution $\iter[k]{x}$ to $Ax=b$}
+  solve $A\iter[0]{x}=b$ in precision $u_f$ and store $x_0$ at precision $u$ \\
+  \For{$k = 1$ \KwTo $k_{max}$} {
+    compute $\iter[k]{r} = b-A\iter[k]{r}$ in precision $u_r$ and round $\iter[k]{r}$ to precision $u$ \\
+    \If{$\normd{\iter[k]{r}}_p) \leq \epsilon_{max}$}{\Return $\iter[k]{x}$}
+    solve $\Tilde{A}\iter[k]{d}\equiv\hat{U}^{-1}\hat{L}^{-1}A\iter[k]{d}=\hat{U}^{-1}\hat{L}^{-1}\iter[k]{r}$ by GMRES in precision $u$ \\
+    with matrix-vector producs with $\Tilde{A}$ being computed at precision precision $u_r$ \\
+    and store $\iter[k]{d}$ at precision $u$ \\
+    $\iter[k+1]{x}=\iter[k]{x}+\iter[k]{d}$ in precision $u$}
+  \% iteration has not converged
+\end{algorithm}
+
+Besides those algorithms, \cite{carson_accelerating_2018} also provide a general error analysis for iterative refinement in three precisions, providing error bound for various combinations of the floating-point formats outlined in Table~\hyperref[tab:ieee_formats]{\ref{tab:ieee_formats}}. From those formats, only single and double precision arithmetics are usually available in hardware on modern computer architectures, However, with the increasing demand for deep-learning applications, half precision arithmetics become increasingly available in GPUs (e.g. NVIDIA Tensor Cores), CPUs (e.g. Supercomputer Fugaku) or as specialized accelerators (e.g. Google's TPU). Quadruple precision, on the other hand, is usually not supported and has to be implemented in software, making it considerably slower than the other formats. But since this format is only involved in the calculations of the residual, the speed-up obtained from being able to perform the majority of the work in lower precision (i.e. the factorization) might still be larger than the incurred additional cost.
+
+The error bound provided by \cite{carson_accelerating_2018} have been summarized in Table~\hyperref[tab:ir_bounds]{\ref{tab:ir_bounds}}. Note that $u_s = u_f$ if the correction term equation is solved directly via the LU factors, while $u_s=u$ for GMRES-IR. Thus the requirement on the condition number of $A$ can be relaxed and GMRES-IR is able to achieve a result of the same accuracy (entries 4 \& 7) at essentially half the factorization cost.
+
+\begin{table*}[h]
+\setlength{\tabcolsep}{10pt} % Default value: 6pt
+  \begin{center}
+    \begin{tabular}{c  c  c  c}
+     \textbf{Type} & \textbf{Size} (bits) & \textbf{Range} & \textbf{Unit roundoff $\bm{u}$}\\
+     \toprule
+    half & 16 & $10^{\pm5}$ & $2^{-11}\approx 4.9 \times 10^{-4}$ \\
+    single & 32 & $10^{\pm38}$ & $2^{-24}\approx 6.0 \times 10^{-8}$ \\
+    double & 64 & $10^{\pm308}$ & $2^{-53}\approx 1.1 \times 10^{-16}$ \\
+    quadruple & 118 & $10^{\pm4932}$ & $2^{-113}\approx 9.6 \times 10^{-35}$\\
+    \end{tabular}
+        \caption[IEEE Arithmetic Precisions]{Arithmetic precisions for IEEE floating-point formats.}
+    \label{tab:ieee_formats}
+  \end{center}
+\end{table*}
+
+
+\begin{table*}[h]
+\renewcommand{\arraystretch}{1.2}
+  \begin{center}
+   \resizebox{\textwidth}{!}{%
+    \begin{tabular}{c c c  c c c c}
+    \toprule[1.2pt]
+    & & & & \multicolumn{2}{c}{\textbf{BackwardError}} &\\
+     \cmidrule[1.2pt](lr{0.125em}){5-6}
+     $\bm{u_f}$ & $\bm{u}$ & $\bm{u_r}$ & $\bm{\kappa_\infty(A)}$ &\textbf{Norm-wise} & \textbf{Component-wise} & \textbf{Forward Error}\\
+    \cmidrule[1.2pt](lr{0.125em}){1-7}
+    \addlinespace[0.3cm]
+    \multicolumn{7}{c}{\textbf{Iterative Refinement (LU-based)}} \\
+    \cmidrule[0.8pt](lr{0.125em}){1-7}
+    half & single & single &$10^{4}$ & single & single & $cond(A,x)\cdot 10^{-1}$  \\
+    half & single & double &$10^{4}$ & single & single & single  \\
+    half & double & quadruple &$10^{4}$ & double & double & double  \\
+    \cmidrule[0.5pt](lr{0.125em}){1-7}
+    single & single & double &$10^{8}$ & single & single & single  \\
+    single & double & quadruple &$10^{8}$ & double & double & double  \\
+    \addlinespace[0.3cm]
+    \multicolumn{7}{c}{\textbf{GMRES-IR}} \\
+    \cmidrule[0.8pt](lr{0.125em}){1-7}
+    \cmidrule[0.8pt](lr{0.125em}){1-7}
+    half & half & single &$10^{4}$ & half & half & half  \\
+    half & single & double &$10^{8}$ & single & single & single  \\
+    half & double & quadruple &$10^{12}$ & double & double & double  \\
+    \cmidrule[0.5pt](lr{0.125em}){1-7}
+    single & single & double &$10^{8}$ & single & single & single  \\
+    single & double & quadruple &$10^{16}$ & double & double & double  \\
+
+    \end{tabular}}
+        \caption[IEEE Formats \& Iterative Refinement]{Different choices of IEEE formats and their error bounds for iterative refinment based on LU or GMRES as provided in \cite{carson_accelerating_2018}. Convergence is guaranteed as long as the bound $\kappa_\infty(A)$ holds with the limiting backward and forward errors shown in the last three columns. Note that the norm- and component-wise terms are identical for the forward error.}
+    \label{tab:ir_bounds}
+  \end{center}
+\end{table*}

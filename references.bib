@@ -1,4 +1,39 @@
 
+@article{demmel_error_2006,
+	title = {Error {Bounds} from {Extra}-{Precise} {Iterative} {Refinement}},
+	volume = {32},
+	issn = {0098-3500},
+	url = {https://doi.org/10.1145/1141885.1141894},
+	doi = {10.1145/1141885.1141894},
+	abstract = {We present the design and testing of an algorithm for iterative refinement of the solution of linear equations where the residual is computed with extra precision. This algorithm was originally proposed in 1948 and analyzed in the 1960s as a means to compute very accurate solutions to all but the most ill-conditioned linear systems. However, two obstacles have until now prevented its adoption in standard subroutine libraries like LAPACK: (1) There was no standard way to access the higher precision arithmetic needed to compute residuals, and (2) it was unclear how to compute a reliable error bound for the computed solution. The completion of the new BLAS Technical Forum Standard has essentially removed the first obstacle. To overcome the second obstacle, we show how the application of iterative refinement can be used to compute an error bound in any norm at small cost and use this to compute both an error bound in the usual infinity norm, and a componentwise relative error bound.We report extensive test results on over 6.2 million matrices of dimensions 5, 10, 100, and 1000. As long as a normwise (componentwise) condition number computed by the algorithm is less than 1/max10,√nεw, the computed normwise (componentwise) error bound is at most 2 max10, √n · εw, and indeed bounds the true error. Here, n is the matrix dimension and εw = 2-24 is the working precision. Residuals were computed in double precision (53 bits of precision). In other words, the algorithm always computed a tiny error at negligible extra cost for most linear systems. For worse conditioned problems (which we can detect using condition estimation), we obtained small correct error bounds in over 90\% of cases.},
+	number = {2},
+	journal = {ACM Trans. Math. Softw.},
+	author = {Demmel, James and Hida, Yozo and Kahan, William and Li, Xiaoye S. and Mukherjee, Sonil and Riedy, E. Jason},
+	month = jun,
+	year = {2006},
+	note = {Place: New York, NY, USA
+Publisher: Association for Computing Machinery},
+	keywords = {BLAS, LAPACK, Linear algebra, floating-point arithmetic},
+	pages = {325--351},
+}
+
+@article{carson_accelerating_2018,
+	title = {Accelerating the {Solution} of {Linear} {Systems} by {Iterative} {Refinement} in {Three} {Precisions}},
+	volume = {40},
+	issn = {1064-8275, 1095-7197},
+	url = {https://epubs.siam.org/doi/10.1137/17M1140819},
+	doi = {10.1137/17M1140819},
+	abstract = {We propose a general algorithm for solving an n{\textbackslash}times n nonsingular linear system Ax = b based on iterative refinement with three precisions. The working precision is combined with possibly different precisions for solving for the correction term and for computing the residuals. Via rounding error analysis of the algorithm we derive sufficient conditions for convergence and bounds for the attainable forward error and normwise and componentwise backward errors. Our results generalize and unify many existing rounding error analyses for iterative refinement. With single precision as the working precision, we show that by using LU factorization in IEEE half precision as the solver and calculating the residuals in double precision it is possible to solve Ax = b to full single precision accuracy for {\textbackslash}infty -norm condition numbers {\textbackslash}kapa {\textbackslash}infty (A) {\textbackslash}leq  104, with the O(n3) part of the computations carried out entirely in half precision. We show further that by solving the correction equations by GMRES preconditioned by the LU factors the restriction on the condition number can be weakened to {\textbackslash}kapa {\textbackslash}infty (A) {\textbackslash}leq  108, although in general there is no guarantee that GMRES will converge quickly. Taking for comparison a standard Ax = b solver that uses LU factorization in single precision, these results suggest that on architectures for which half precision is efficiently implemented it will be possible to solve certain linear systems Ax = b up to twice as fast and to greater accuracy. Analogous results are given with double precision as the working precision.},
+	language = {en},
+	number = {2},
+	urldate = {2021-06-29},
+	journal = {SIAM Journal on Scientific Computing},
+	author = {Carson, Erin and Higham, Nicholas J.},
+	month = jan,
+	year = {2018},
+	pages = {A817--A847},
+}
+
 @article{ma_accuracy_2018,
 	title = {Accuracy {Directly} {Controlled} {Fast} {Direct} {Solution} of {General} {H}{\textasciicircum}2-matrices and {Its} {Application} to {Solving} {Electrodynamics} {Volume} {Integral} {Equations}},
 	volume = {66},
@@ -639,7 +674,7 @@ Publisher: Society for Industrial and Applied Mathematics},
 	pages = {603--613},
 }
 
-@article{carson_accelerating_2018,
+@article{carson_accelerating_2018-1,
 	title = {Accelerating the {Solution} of {Linear} {Systems} by {Iterative} {Refinement} in {Three} {Precisions}},
 	volume = {40},
 	issn = {1064-8275, 1095-7197},
