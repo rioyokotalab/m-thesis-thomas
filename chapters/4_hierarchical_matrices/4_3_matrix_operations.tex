@@ -9,8 +9,8 @@ Any matrix format used to represent matrices on computers is evaluated with rega
 
 The assessment of the latter might differ depending on which matrix operations are most important for the actual implementation, but usually includes basic building blocks for many other algorithms such as matrix-vector or matrix-matrix multiplication. With regards to linear systems, the performance of Gaussian elimination (i.e. LU factorization) is crucial as well, since it dominates the workload of direct solvers (due to its $\mathcal{O}(n)$ complexity). For iterative solvers, on the other hand, the performance is decided by the speed of the matrix-vector product (at least in the absence of preconditioners).
 
-The details of these operations for the hierarchical formats discussed previously will be detailed in the following sections. 
-%TODO cite Peter and for empirical results and restrict to complexity analysis
+The details of these operations for the hierarchical formats discussed previously will be detailed in the following sections. Note the discussion within this thesis will be limited to complexity analysis only, but empirical results are available from \cite{spalthoff_pg_hierarchical_2020}.
+
 
 \section{Matrix-Vector Multiplication}
 \label{sec:matrix_vector}

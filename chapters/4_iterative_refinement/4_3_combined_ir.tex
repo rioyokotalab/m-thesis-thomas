@@ -1,2 +1,25 @@
 \section{Combination of Mixed Precision and Low-Rank Preconditioner}
 \label{sec:combinded_ir}
+
+Following the arguments from Section~\hyperref[sec:low_precision_ir]{\ref{sec:low_rank_ir}}, the convergence of iterative refinement does not depend on the accuracy of the factorization, but instead on the accuracy in which the correction equation can be solved. This, in turn, enables GMRES-IR to obtain a solution accurate to working precision even if the factorization is calculated at low-precision (i.e. $u=u_f^2$). In a hierarchical matrix format, the accuracy is controlled by choosing the rank $k$ for each low-rank sub-matrix according to an appropriate error threshold $\epsilon$. It is known that the error decreases monotonically with an increase of the rank \cite{eckart_approximation_1936}, but the actual magnitude depends on the singular values. It follows that for the same block $A_{ij}$, if $k_1$ is the rank associated with the error threshold $\epsilon_1$ and $k_2$ is the rank associated with error threshold $\epsilon_2$ then:
+\begin{equation}
+    \epsilon_1 < \epsilon_2 \Rightarrow k_1 \geq k_2
+\end{equation}
+
+\noindent Consequently, rank $k_2$ might actually be able to fulfill both error conditions, since it is only a \textit{maximal} error bound. Consider now a low-rank approximation of $A_{ij}$, with an error bound of $\epsilon=10^{-6}$ stored in double precision. Even though the rank cannot be decreased without violating the error threshold, only about half of the decimal digits stored are indeed necessary to maintain an accurate representation. In fact, since $\epsilon$ is safely smaller than the unit roundoff for single precision, the storage cost could be reduced by 50\% without sacrificing accuracy.
+
+As illustrated by this example, the storage precision of the hierarchical representation should be adjusted in accordance with the error threshold in order to achieve best performance. When used as a preconditioner for GMRES-IR, the LU decomposition only needs to be available in precision $u_f$ instead of $u$. While not being able to reduce the overall complexity of the algorithm, adjusting the storage format accordingly would still result in a large speed-up when calculating the factorization. As a result IR with a low-rank preconditioner is expected to benefit from a mixed precision approach in the similar way as traditional iterative refinement did.
+
+However, this is not the only possibility for hierarchical matrices to benefit from mixed precision computations. Let $T=USV^T$ be the low-rank approximation obtained from a truncated SVD to rank $k$. Taking a subset of $m$ singular values and the corresponding vectors from T leads to $T_m=U_mS_mV^T_m$ and \cite{amestoy_mixed_2021} show that when converting such a subset to a lower precision $u_p$, the error is of order:
+\begin{equation}
+    \mathcal{O}(\epsilon)=u_p\norm{S_m}_2
+\end{equation}
+
+\noindent Thus the size of the error is proportional to the singular values in $S_m$ and an overall accuracy with an error $\epsilon$ can be preserved if the singular values are partitioned such that:
+\begin{equation}
+    \norm{S_m}_2 \approx \frac{\epsilon}{u_p}
+\end{equation}
+
+\noindent Note that in this work, it is assumed that only $U_m$ and $V^T_m$ are stored in reduced precision, as the size of $S_m$ remains negligible. But there proof can be adapted for a conversion of the singular values as well, leading only to a slight increase of the obtained error bounds. 
+
+This approach is implemented and verified on the example of a BLR LU factorization in \cite{amestoy_mixed_2021}. They report a storage reduction of up to a factor $2.8\times$ and an expected speed-up of approximately $3.33$ over the double precision variant. However, it is noted that due to dependencies on the hardware and matrix features, a practical high-performance implementation is very difficult to achieve. Therefore, this work will rely on the initially discussed method of simply adjusting the precision of the entire hierarchical matrix to perform iterative refinement in three precisions. Additional optimizations due to an optimized mixed precision low-rank representation are left to future research and experiments.

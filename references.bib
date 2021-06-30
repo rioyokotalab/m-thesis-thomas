@@ -1,4 +1,21 @@
 
+@mastersthesis{spalthoff_pg_hierarchical_2020,
+	address = {Tokyo},
+	title = {Hierarchical {Low} {Rank} {Approximation}. {Fast} {Solvers} for {Dense} {Systems} of {Linear} {Equations}.},
+	school = {Tokyo Insitute of Technology},
+	author = {{Spalthoff, P.G.}},
+	year = {2020},
+}
+
+@article{amestoy_mixed_2021,
+	title = {Mixed {Precision} {Low} {Rank} {Approximations} and their {Application} to {Block} {Low} {Rank} {LU} {Factorization}},
+	abstract = {We introduce a novel approach to exploit mixed precision arithmetic for low-rank approximations. Our approach is based on the observation that singular vectors associated with small singular values can be stored in lower precisions while preserving high accuracy overall. We provide an explicit criterion to determine which level of precision is needed for each singular vector. We apply this approach to block low-rank (BLR) matrices, most of whose oﬀ-diagonal blocks have low rank. We propose a new BLR LU factorization algorithm that exploits the mixed precision representation of the blocks. We carry out the rounding error analysis of this algorithm and prove that the use of mixed precision arithmetic does not compromise the numerical stability of BLR LU factorization. Moreover our analysis determines which level of precision is needed for each ﬂoatingpoint operation (ﬂop), and therefore guides us towards an implementation that is both robust and eﬃcient. We evaluate the potential of this new algorithm on a range of matrices coming from real-life problems in industrial and academic applications. We show that a large fraction of the entries in the LU factors and ﬂops to perform the BLR LU factorization can be safely switched to lower precisions, leading to signiﬁcant reductions of the storage and ﬂop costs, of up to a factor three using fp64, fp32, and bﬂoat16 arithmetics.},
+	language = {en},
+	author = {Amestoy, Patrick and Boiteau, Olivier and Buttari, Alfredo and Gerest, Matthieu and Jézéquel, Fabienne},
+	year = {2021},
+	pages = {27},
+}
+
 @article{demmel_error_2006,
 	title = {Error {Bounds} from {Extra}-{Precise} {Iterative} {Refinement}},
 	volume = {32},
