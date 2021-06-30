@@ -1,7 +1,7 @@
 \section{Structured Low-Rank Matrix Formats}
 \label{sec:matrix_formats}
 
-In order to represent a matrix $A$ in a structured low-rank format, the corresponding cluster tree $\mathcal{T}$ needs to be constructed first. This is done by defining the index tree $\mathcal{I}$ over the row indices of $A$ and the index tree $\mathcal{J}$ over the column indices. The size of the leaves is determined by the aforementioned balance of  efficiency and accuracy, but in principle it can be any arbitrary number such that the index range is split at least once. Calculating the tensor product of these two trees then results in the cluster tree $\mathcal{T}$. In this tree, each child node represents a sub-block of the matrix $A$, while the root contains the full matrix. Note that there can not be an overlap between the children of a node and all the nodes on the same level represent a full view of the matrix $A$.
+In order to represent a matrix $A$ in a structured low-rank format, the corresponding cluster tree $\mathcal{T}$ needs to be constructed first. This is done by defining the index tree $\mathcal{I}$ over the row indices of $A$ and the index tree $\mathcal{J}$ over the column indices. The size of the leaves is determined by the aforementioned balance of  efficiency and accuracy, but in principle it can be any arbitrary number such that the index range is split at least once. Calculating the tensor product of these two trees then results in the cluster tree $\mathcal{T}$. In this tree, each child node represents a sub-block of the matrix $A$, while the root contains the full matrix. Note that there can not be an overlap between the children of a node and all the nodes on the same level represent a full view of the matrix $A$. Due to the hierarchical nature of the cluster tree, matrices stored in such a format are often referred to as \textit{hierarchical} matrices.
 
 Using this representation, it becomes possible to exploit the low-rank properties of sub-matrices from $A$. By traversing the tree from top to bottom (i.e. from the root downwards), a rank $k$ approximation can be created for each block. If the specified accuracy criterion is met, the block is replaced by a low-rank representation and all its children are deleted. If the error is still to high, further traversal down the tree will be necessary, performing the same check for the child nodes. When this process arrives at a leaf node and the desired accuracy is still not obtainable, the block will be stored as a dense matrix instead. An example of a resulting hierarchical matrix from a corresponding cluster tree is provided in Figure~\hyperref[fig:hierarchical_cluster]{\ref{fig:hierarchical_cluster}}.
 
@@ -36,27 +36,27 @@ The block low-rank storage format has been proposed by \cite{amestoy_improving_2
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.6\linewidth]{chapters/4_hierarchical_matrices/figures/BLR.pdf}
-    \caption[Block Low-Rank Matrix]{Example of a BLR matrix with weak admissibility. All blcoks are of equal size, with off-diagonal blocks being approximated by low-rank factorizations.}
+    \caption[Block Low-Rank Matrix]{Example of a BLR matrix with weak admissibility. All blocks are of equal size, with off-diagonal blocks being approximated by low-rank factorizations.}
     \label{fig:blr}
 \end{figure}
 
-The restrictions on the cluster tree imposed by this format have many favourable consequences. First, since all the blocks are on the same level, the matrix can be processed sequentially in a block-by-block fashion and does not need to rely on recursion at all. Being of equal size furthermore facilitates processing since all blocks can be handled in the same way. Second, interactions between block are well defined and efficient. Blocked variants of traditional matrix algorithms are available in many numerical libraries (e.g. \cite{anderson_lapack_1999} and are known to perform better than their element-wise counterparts on modern computer architectures. Hence matrix operations on BLR matrices can be performed relatively easy with similar procedures (all that is left is to define the interactions of the low-rank plots). Third, due to the aforementioned reasons, load balancing on parallel implementations is greatly simplified and the overhead of constructing the low-rank representation remains low (see \cite{amestoy_improving_2015}). 
+The restrictions on the cluster tree imposed by this format have many favourable consequences. First, since all the blocks are on the same level, the matrix can be processed sequentially in a block-by-block fashion and does not need to rely on recursion at all. Being of equal size furthermore facilitates processing since all blocks can be handled in the same way. Second, interactions between block are well defined and efficient. Blocked variants of traditional matrix algorithms are available in many numerical libraries (e.g. LAPACK \cite{anderson_lapack_1999}) and are known to perform better than their element-wise counterparts on modern computer architectures. Hence, matrix operations on BLR matrices can be performed relatively easy with similar procedures (all that is left is to define the interactions of the low-rank parts). Third, due to the aforementioned reasons, load balancing on parallel implementations is greatly simplified and the overhead of constructing the low-rank representation remains low (see \cite{amestoy_improving_2015}). 
 
 On the other side, as a drawback of the simple tree structure, matrix operations conducted with this format are generally more expensive than those of the other formats that will be introduced later on. BLR matrix-matrix multiplication, for example, can be performed in $\mathcal{O}(n^2)$. While this is faster than the normal dense computations, it is still considerably slower than the (almost) linear complexity achieved by other representations. Arguably, the most interesting operation in the context of linear solvers is the LU factorization, and a detailed analysis by \cite{amestoy_complexity_2017}, shows an upper bound of $\mathcal{O}(n^2)$ as well. Because the BLR structure employs a flat representation (i.e. all leaves are on the same level) instead of a hierarchical one, the number of blocks remains a fraction of the matrix size and thus limits its scalability.
 
-In order to bridge the gap to hierarchical approaches, while maintaining the ease of usage of the BLR format, an extension called \textit{multilevel BLR} (MBLR) was introduced by \cite{amestoy_bridging_2019}. The simple idea behind this proposal is to allow for multiple levels (i.e. a hierarchy) within the BLR structure, but at the same time fixing the number of levels to a certain parameter $\ell$. Hence it straightforward mechanism for managing the complexity, starting from $\ell=1$ (a normal BLR and thus $\mathcal{O}(n^2)$) up to an infinite number of levels $\ell=\infty$, which would achieve almost $\mathcal{O}(n)$. In contrast to the general partition rules mentioned in Section~\hyperref[sec:matrix_partition]{\ref{sec:matrix_partition}}, where the partition should contain as few blocks as possible, the number of children per node is asymptotically dependent on $n$ in the MBLR case. This is caused by the restriction on the number of levels $\ell$ the resulting structure for the case $\ell = 2$ is depicted in Figure~\hyperref[fig:mblr]{\ref{fig:mblr}}.
+In order to bridge the gap to hierarchical approaches while maintaining the ease of usage of the BLR format, an extension called \textit{multilevel} BLR (MBLR) was introduced by \cite{amestoy_bridging_2019}. The simple idea behind this proposal is to allow for multiple levels (i.e. a hierarchy) within the BLR structure, but at the same time fixing the number of levels to a certain parameter $\ell$. Hence, it is straightforward mechanism for managing the complexity, starting from $\ell=1$ (a normal BLR and thus $\mathcal{O}(n^2)$) up to an infinite number of levels $\ell=\infty$, which would achieve almost $\mathcal{O}(n)$. In contrast to the general partition rules mentioned in Section~\hyperref[sec:matrix_partition]{\ref{sec:matrix_partition}}, where the partition should contain as few blocks as possible, the number of children per node is asymptotically dependent on $n$ in the MBLR case. This is caused by the restriction on the number of levels $\ell$ and the resulting structure for the case $\ell = 2$ is depicted in Figure~\hyperref[fig:mblr]{\ref{fig:mblr}}.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.6\linewidth]{chapters/4_hierarchical_matrices/figures/MBLR.pdf}
-    \caption[Multilevel Block Low-Rank Matrix]{Example of a 2-level MBLR matrix with weak admissibility. In contrast to other hierarchical formats, the number of children per node governed by the block size $b$.}
+    \caption[Multilevel Block Low-Rank Matrix]{Example of a 2-level MBLR matrix with weak admissibility. In contrast to other hierarchical formats, the number of children per node is governed by the block size $b$.}
     \label{fig:mblr}
 \end{figure}
 
 With regards to the expected accuracy of this representation, it has to be remarked that it depends entirely on the low-rank compression of the admissible blocks. This is the same for all hierarchical matrix formats, because the error induced by each compressed block is dependent on its rank $k$. Naturally, the quality of the approximation increases with the size of the rank, since the error of a full-rank representation is zero. Efficient computations, on the contrary, require a lower rank and thus there are two common ways to control this trade-off:
 \begin{itemize}
     \item Fixing the rank $k$: This allows for fast and simple calculations, because the dimensions of the low-rank approximations are fixed. However, if the rank is chosen too low, some blocks might not be represented accurately.
-    \item Fixing the error $\epsilon$: The rank can vary between blocks with each one selecting an appropriate $k$ in order to guarantee the maximal error $\epsilon$. The accuracy of the approximation can be controlled, but efficiency might suffer if the rank for some blocks is too large.
+    \item Fixing the error $\epsilon$: The rank can vary between blocks with each one selecting an appropriate $k$ in order to guarantee the maximal error $\epsilon$. The accuracy of the approximation can be controlled, but efficiency might suffer if the rank for some blocks becomes too large.
 \end{itemize}
 
 \subsection{BLR Matrix with Shared Bases (BLR\texorpdfstring{\textsuperscript{2}}{2})}
@@ -64,32 +64,32 @@ With regards to the expected accuracy of this representation, it has to be remar
 
 The concept of shared (or in later cases nested) bases has been introduced together with hierarchical matrices (see \cite{hackbusch_hierarchical_2004}). It is based on the observation that for certain matrices arising from discretization of integral functions, the low-rank approximations sharing the same column or row range, are not entirely independent of each other. By finding appropriate cluster bases for such blocks, any admissible leaf block from $A \in \realx[I]{J}$ can be expressed as:
 \begin{equation}
-    A_{i,j}=U_i\cdot S_{i,j}\cdot V_j^T
+    A_{ij}=U_i\cdot S_{ij}\cdot V_j^T
 \end{equation}
 
-\noindent Hence, all blocks in the same row $i$ share the common basis $U_i$ and all blocks within the same column $j$ share the basis $V_j$. This reduces the storage requirement of an hierarchical representation drastically, since only the relatively small matrix $S_{i,j}$ needs to be maintained per block.
+\noindent Hence, all blocks in the same row $i$ share the common basis $U_i$ and all blocks within the same column $j$ share the basis $V_j$. This reduces the storage requirement of an hierarchical representation drastically, since only the relatively small matrix $S_{ij}$ needs to be maintained per block.
 
-From an application point of view, a good example would be particle interactions in physics. Suppose those particles are sorted by some measure of spatial distance, then it is most likely that where will be several groups of particles that are closer to each other than to the rest. The interactions within such a group correspond to the dense parts in a hierarchical representation, while the interactions across groups are contained within the low-rank approximations. In this case, it is possible to summarize the outgoing interactions from group $i$ to all other groups via the row basis $U_i$. The incoming interactions can be summarized in a similar fashion giving rise to the row basis $V_i$. The full mathematical background to this idea can be found in \cite{hackbusch_h2-matrix_2002}.
+From an application point of view, a good example would be particle interactions in physics. Suppose those particles are sorted by some measure of spatial distance, then it is most likely that where will be several groups of particles that are closer to each other than to the rest. The interactions within such a group correspond to the dense parts in a hierarchical representation, while the interactions across groups are contained within the low-rank approximations. In this case, it is possible to summarize the outgoing interactions from group $i$ to all other groups via the row basis $U_i$. The incoming interactions can be summarized in a similar fashion giving rise to the column basis $V_i$. The full mathematical background to this idea can be found in \cite{hackbusch_h2-matrix_2002}.
 
 For BLR matrices, this technique has been thoroughly explored by \cite{ashcraft_block_2020}, who used the 
-name BLR\textsuperscript{2} to describe such a BLR format with shared bases. The process of who such a BLR\textsuperscript{2} matrix is constructed from an ordinary BLR representation will be outlined as an example on how such shared bases are obtained. Consider a BLR matrix $\Tilde{A}$, where each admissible block is approximated by a truncated SVD of the form:
+name BLR\textsuperscript{2} to describe such a BLR format with shared bases. The process of how such a BLR\textsuperscript{2} matrix is constructed from an ordinary BLR representation will be outlined as an example on how such shared bases are obtained. Consider a BLR matrix $\Tilde{A}$, where each admissible block is approximated by a truncated SVD of the form:
 \begin{equation}
-    \Tilde{A}_{i,j} = U_{i,j}\cdot D_{i,j}\cdot V_{i,j}^T
+    \Tilde{A}_{ij} = U_{ij}\cdot D_{ij}\cdot V_{ij}^T
 \end{equation}
 
-\noindent Suppose that the size of each block is given by $b$ such that $\Tilde{A}_{i,j} in \realx[b]{b}$ and a fixed rank $k$ is used for the representation, yielding $U_{i,j}, V_{i,j} \in \realx[b]{k}$ and $D_{i,j} \in \realx[k]{k}$. A shared basis for each column $c$ can be constructed via means of the QR factorization by combining the information from all admissible row blocks $i$:
+\noindent Suppose that the size of each block is given by $b$ such that $\Tilde{A}_{ij} \in \realx[b]{b}$ and a fixed rank $k$ is used for the representation, yielding $U_{ij}, V_{ij} \in \realx[b]{k}$ and $D_{ij} \in \realx[k]{k}$. A shared basis for each column $c$ can be constructed via means of the QR factorization by combining the information from all admissible row blocks $i$:
 \begin{equation}
   \left[
     \begin{array}{c|c|c}
       & & \\
-      D_{1,c}\cdot V_{1,c} &\dots & D_{i,c}\cdot V_{i,c} \\
+      D_{1,c}\cdot V_{1c} &\dots & D_{ic}\cdot V_{ic} \\
       & & \\
     \end{array}
   \right] = V_c
   \left[
     \begin{array}{c|c|c}
       & & \\
-      E_{1,c}^T &\dots & E_{i,c}^T \\
+      E_{1c}^T &\dots & E_{ic}^T \\
       & & \\
     \end{array}
   \right]
@@ -100,22 +100,22 @@ name BLR\textsuperscript{2} to describe such a BLR format with shared bases. The
   \left[
     \begin{array}{c|c|c}
       & & \\
-      U_{r,1}\cdot D_{r,1} &\dots & U_{r,j}\cdot D_{r,j} \\
+      U_{r1}\cdot D_{r1} &\dots & U_{rj}\cdot D_{rj} \\
       & & \\
     \end{array}
   \right] = U_r
   \left[
     \begin{array}{c|c|c}
       & & \\
-     F_{r,1} &\dots & F_{r,j} \\
+     F_{r1} &\dots & F_{rj} \\
       & & \\
     \end{array}
   \right]
 \end{equation}
 
-\noindent Note that for this process to be beneficial, the QR factorization must be combined with a compression scheme, such that the rank of the resulting basis accurately approximated. One efficient possibility would be a rank-revealing QR factorization as proposed by \cite{hong_rank-revealing_1992} or \cite{gu_efficient_1996}. Since a fixed rank $k$ was assumed in this example, the resulting bases are $U_{i}, V^T_{j} \in \realx[b]{k}$ and the matrix $S(i,j) \in \realx[k]{k}$ is given for each admissible block by:
+\noindent Note that for this process to be beneficial, the QR factorization must be combined with a compression scheme, such that the rank of the resulting basis is accurately approximated. One efficient possibility would be a rank-revealing QR factorization as proposed by \cite{hong_rank-revealing_1992} or \cite{gu_efficient_1996}. Since a fixed rank $k$ was assumed in this example, the resulting bases are $U_{i}, V^T_{j} \in \realx[b]{k}$ and the matrix $S(ij) \in \realx[k]{k}$ is given for each admissible block by:
 \begin{equation}
-    S_{i,j}=F_{i,j} \cdot E_{i,j}^T
+    S_{ij}=F_{ij} \cdot E_{ij}^T
 \end{equation}
 
 \begin{figure}[h]
