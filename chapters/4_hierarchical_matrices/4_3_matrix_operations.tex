@@ -7,9 +7,9 @@ Any matrix format used to represent matrices on computers is evaluated with rega
     \item \textbf{Speed}: the efficiency of calculating certain matrix operations
 \end{itemize}
 
-The assessment of the latter might differ depending on which matrix operations are most important for the actual implementation, but usually includes basic building blocks for many other algorithms such as matrix-vector or matrix-matrix multiplication. With regards to linear systems, the performance of Gaussian elimination (i.e. LU factorization) is crucial as well, since it dominates the workload of direct solvers (due to its $\mathcal{O}(n)$ complexity). For iterative solvers, on the other hand, the performance is decided by the speed of the matrix-vector product (at least in the absence of preconditioners).
+The assessment of the latter might differ depending on which matrix operations are most important for the actual application, but usually includes basic building blocks for many other algorithms such as matrix-vector or matrix-matrix multiplication. With regards to linear systems, the performance of Gaussian elimination (i.e. LU factorization) is crucial as well, since it dominates the workload of direct solvers (due to its $\mathcal{O}(n^3)$ complexity). For iterative solvers, on the other hand, the performance is decided by the speed of the matrix-vector product (at least in the absence of preconditioners).
 
-The details of these operations for the hierarchical formats discussed previously will be detailed in the following sections. Note the discussion within this thesis will be limited to complexity analysis only, but empirical results are available from \cite{spalthoff_pg_hierarchical_2020}.
+The details of these operations for the hierarchical formats introduced previously will be detailed in the following sections. Note that the discussion within this thesis will be limited to complexity analysis only, but empirical results are available from \cite{spalthoff_pg_hierarchical_2020}.
 
 
 \section{Matrix-Vector Multiplication}
@@ -20,12 +20,12 @@ Consider the product resulting from multiplying an  $\mathcal{H}$-matrix $A \in 
     Ax = y, \; \; x,y \in \real{}
 \end{equation}
 
-\noindent In this case, it is easiest to think of the $\mathcal{H}$-matrix as just a set of general sub-matrices (see e.g. Figure~\hyperref[fig:hodlr]{\ref{fig:hodlr}}) and then it becomes evident that the matrix-vector product is just the result of a summation of operations for each of these matrix blocks. Furthermore, since the actual data is only available in the leaves, only those parts of the cluster tree $\mathcal{T} \in I \times J$ need to be considered. By defining $P = \mathcal{L}(\mathcal{T})$ as the set of leaves of a cluster tree, the following formulation for the matrix-vector product can be obtained (see  \cite{bebendorf_hierarchical_2008}):
+\noindent In this case, it is easiest to think of the $\mathcal{H}$-matrix as just a set of general sub-matrices (see e.g. Figure~\hyperref[fig:hodlr]{\ref{fig:hodlr}}) and then it becomes evident, that the matrix-vector product is just the result of a summation of operations for each of these matrix blocks. Furthermore, since the actual data is only available in the leaves, only those parts of the cluster tree $\mathcal{T} \in I \times J$ need to be considered. By defining $P = \mathcal{L}(\mathcal{T})$ as the set of leaves of a cluster tree, the following formulation for the matrix-vector product can be obtained (see  \cite{bebendorf_hierarchical_2008}):
 \begin{equation}
-    y=Ax = \sum_{t \times s \in P}{A_{t,s}x_s}
+    y=Ax = \sum_{t \times s \in P}{A_{ts}x_s}
 \end{equation}
 
-\noindent Taking the HODLR storage format as an example, then only diagonal blocks are represented as dense matrices. Hence it follows that the first diagonal block $A_{1,1}$ need to be a leaf-level sub-matrix. Let $A_{1,1}$ be of dimension $10 \times 10$ and let $d = \{1,2,\dots, 10\}$ represent the range. Then the first part of the resulting vector $y_d$ must be given by a sum of the matrix-vector products $A_{t,s}x_s$ where $d$ is part of the range of $s$. This example is illustrated in Figure~\hyperref[fig:matvec]{\ref{fig:matvec}} for easier comprehension, based on the explanation by \cite{ooi_effect_2020}.
+\noindent Taking the HODLR storage format as an example, then only diagonal blocks are represented as dense matrices. Hence, it follows that the first diagonal block $A_{11}$ needs to be a leaf-level sub-matrix. Let $A_{11}$ be of dimension $10 \times 10$ and let $d = \{1,2,\dots, 10\}$ represent the range. Then the first part of the resulting vector $y_d$ must be given by a sum of the matrix-vector products $A_{ts}x_s$ where $d$ is part of the range of $s$. This example is illustrated in Figure~\hyperref[fig:matvec]{\ref{fig:matvec}} for easier comprehension, based on the explanation by \cite{ooi_effect_2020}.
 
 \begin{figure}[h]
     \centering
@@ -34,9 +34,9 @@ Consider the product resulting from multiplying an  $\mathcal{H}$-matrix $A \in 
     \label{fig:matvec}
 \end{figure}
 
-In case of the first diagonal sub-matrix (and equivalently for every other dense block) the matrix-vector product can be computed just like the standard matrix-vector multiplication. However, if the sub-matrix is a low-rank representation given by $A_{t,s} = UV$, then the result is given by:
+In case of the first diagonal sub-matrix (and equivalently for every other dense block) the matrix-vector product can be computed just like the standard matrix-vector multiplication. However, if the sub-matrix is a low-rank representation given by $A_{ts} = UV$, then the result is given by:
 \begin{equation}
-    A_{t,s}x_s = UVx_s
+    A_{ts}x_s = UVx_s
 \end{equation}
 
 \noindent and thus
@@ -44,7 +44,7 @@ In case of the first diagonal sub-matrix (and equivalently for every other dense
         Vx_s = z_s, \;\; \text{ and }\;\; Uz_s = y_s 
 \end{equation}
 
-\noindent Since the workload associated with each low-rank sub-matrix is now bounded in terms of the rank $k$ by at most $2k(|t|+|s|)$ and the dense blocks are rather small (and achieve a similar bound, but with a different constant), matrix-vector multiplication can be performed in $\mathcal{O}(n\;log(n))$ operations (see \cite{bebendorf_hierarchical_2008}), for a balanced cluster tree. In the nested bases case, the amount of work can be further reduced to to the fact that only one multiplication with the basis is necessary. By looking at Figure~\hyperref[fig:hss]{\ref{fig:hss}}, it becomes clear that instead of $Vx_s = z_s$, we know have $TVx_s = z_s$, where $T$ is a small transfer matrix and $V$ corresponds to the shared basis. Thus, by calculating $Vx_s = \Tilde{x}_s$ only once for each row, the computation for the low-rank blocks is reduced to $T\Tilde{x}_s$ and the total work decreases. Analogously, the same argument can be applied to the columns, decreasing the complexity of the matrix-vector product down to $\mathcal{O(n)}$ for $\mathcal{H}^2$-matrices (see \cite{hackbusch_hierarchical_2015} for a complete proof).
+\noindent Since the workload associated with each low-rank sub-matrix is now bounded in terms of the rank $k$ by at most $2k(|t|+|s|)$ and the dense blocks are rather small (and achieve a similar bound, but with a different constant), matrix-vector multiplication can be performed in $\mathcal{O}(n\;log(n))$ operations (see \cite{bebendorf_hierarchical_2008}), for a balanced cluster tree. In the case of nested bases, the amount of work can be further reduced due to the fact that only one multiplication with the basis is necessary. By looking at Figure~\hyperref[fig:hss]{\ref{fig:hss}}, it becomes clear that instead of $Vx_s = z_s$, we know have $TVx_s = z_s$, where $T$ is a small transfer matrix and $V$ corresponds to the shared basis. Thus, by calculating $Vx_s = \Tilde{x}_s$ only once for each row, the computation for the low-rank blocks is reduced to $T\Tilde{x}_s$ and the total work decreases. Analogously, the same argument can be applied to the columns, decreasing the complexity of the matrix-vector product down to $\mathcal{O}(n)$ for $\mathcal{H}^2$-matrices (see \cite{hackbusch_hierarchical_2015} for a complete proof).
 
 \section{Matrix-Matrix Multiplication}
 \label{sec:matrix_matrix}
@@ -68,11 +68,11 @@ In order to highlight the importance of matrix-matrix multiplication in the cont
   \right] 
 \end{equation}
 
-\noindent In this context, it becomes worthwhile to investigate the performance of matrix-matrix multiplication using the different hierarchical formats. Note that the discussion in this thesis will be limited to the multiplication of two $\mathcal{H}$-matrices, but it is easy to extend the algorithms to a a product of a hierarchical and a dense matrix. By simply dividing the dense matrix according to the same cluster tree a similar partition can be achieved without any admissible blocks. The product can then be obtained by a subset of the operations needed to multiply two $\mathcal{H}$-matrices.
+\noindent In this context, it becomes worthwhile to investigate the performance of matrix-matrix multiplication using the different hierarchical formats. Note that the discussion in this thesis will be limited to the multiplication of two $\mathcal{H}$-matrices, but it is easy to extend the algorithms to a product of a hierarchical and a dense matrix. By simply dividing the dense matrix according to the same cluster tree a similar partition can be achieved without any admissible blocks. The product can then be obtained by a subset of the operations needed to multiply two $\mathcal{H}$-matrices.
 
 Consider a matrix $A$ built from the cluster tree $\mathcal{T}_{I\times J}$ and a matrix $B$ built from $\mathcal{T}_{J\times K}$. The multiplication of those two will result in a cluster tree $\mathcal{T}_{IJK}$. An exact definition of the resulting cluster tree is given in \cite{bebendorf_hierarchical_2008}, but it should be remarked that simply using $\mathcal{T}_{I\times K}$ is not sufficient, since the bounds on the block-wise rank can not be guaranteed. However, with $\mathcal{T}_{IJK}$ being sufficiently structured, the product is defined for every leaf block $t \times s \in \mathcal{T}_{IJK}$ such that:
 \begin{equation}
-    (AB)_{t,s} = \sum_{j \in J}A_{t,j}B_{j,s}
+    (AB)_{ts} = \sum_{j \in J}A_{tj}B_{j,s}
 \end{equation}
 
 \begin{figure}[h]
@@ -128,13 +128,13 @@ Consider a matrix $A$ built from the cluster tree $\mathcal{T}_{I\times J}$ and 
   \right]
 \end{equation}
 
-\noindent Since a leaf-level block is by definition either dense or low-rank, this recursion is guaranteed to terminate and the matrix-matrix product is obtained. Similar arguments as for the case of the matrix-vector product can be applied (see \cite{hackbusch_hierarchical_2015}, resulting in a complexity of $\mathcal{O}(n \;\log(n)$ for the matrix-matrix multiplication.
+\noindent Since a leaf level block is by definition either dense or low-rank, this recursion is guaranteed to terminate and the matrix-matrix product is obtained. Similar arguments as for the case of the matrix-vector product can be applied (see \cite{hackbusch_hierarchical_2015}), resulting in a complexity of $\mathcal{O}(n \;\log(n)$ for the matrix-matrix multiplication.
 Analogously, for $\mathcal{H}^2$-matrices, \cite{borm_h2-matrix_2006} demonstrated that linear complexity can be achieved by optimizing the algorithm.
 
 
 \section{LU Factorization}
 \label{sec:h_lu}
-The hierarchical LU factorization can be formulated as a generalization of the blocked right-looking LU algorithm \cite{carratala-saez_exploiting_2019}. However, it is possible to exploit the hierarchical structure of the matrix in order to achieve faster computations. As it is possible to formulate all operations on the leaf-level of the matrix, the only changes necessary in the blocked LU algorithm are due to the hierarchy of the cluster tree (i.e. blocks of varying sizes). The general blocked LU factorization takes the form:
+The hierarchical LU factorization can be formulated as a generalization of the blocked right-looking LU algorithm \cite{carratala-saez_exploiting_2019}. However, it is now advisable to exploit the hierarchical structure of the matrix in order to achieve faster computations. As it is possible to formulate all operations on the leaf-level of the matrix, the only changes necessary in the blocked LU algorithm are due to the hierarchy of the cluster tree (i.e. blocks of varying sizes). The general blocked LU factorization takes the form:
 \begin{equation}
     A = 
   \left[
@@ -165,7 +165,7 @@ The hierarchical LU factorization can be formulated as a generalization of the b
     \item Compute $L_{22}$ and $U_{22}$ from the LU decomposition of $A_{22}-L_{21}U_{12}$.
 \end{enumerate}
 
-\noindent In principle this set of operations is called recursively for each block, starting from the root. Whenever a leaf node is reached, the actual computation will be executed producing a partial result of the decomposition. As a natural conclusion from the $\mathcal{H}$-matrix structure, it follows that an actual factorization is only calculated for diagonal blocks, which are necessarily dense (and thus the  operation is well defined). 2 \& 3 are the only operations executed on low-rank representations, which correspond to simple triangular solves. The only problematic part of the algorithm can be the calculation of the Schur-complement in 4. Because such an update needs to be computed on every level, it can involve the addition of low-rank blocks and the sum of two matrices of rank $k_1$ and $k_2$ may have a rank of $k_1+k_2$. This doubling of the rank is undesirable as it has a negative effect on performance and is usually countered by re-compressing the result in the form of \textit{rounded addition} (see \cite{bebendorf_hierarchical_2008}).
+\noindent In principle, this set of operations is called recursively for each block, starting from the root. Whenever a leaf node is reached, the actual computation will be executed producing a partial result of the decomposition. As a natural conclusion from the $\mathcal{H}$-matrix structure, it follows that an actual factorization is only calculated for diagonal blocks, which are necessarily dense (and thus the  operation is well defined). 2 \& 3 are the only operations executed on low-rank representations, which correspond to simple triangular solves. The only problematic part of the algorithm can be the calculation of the Schur-complement in 4. Because such an update needs to be computed on every level, it can involve the addition of low-rank blocks and the sum of two matrices of rank $k_1$ and $k_2$ may have a rank of $k_1+k_2$. This doubling of the rank is undesirable as it has a negative effect on performance and is usually countered by re-compressing the result in the form of \textit{rounded addition} (see \cite{bebendorf_hierarchical_2008}).
 
 \begin{figure}[h]
     \centering
@@ -174,7 +174,7 @@ The hierarchical LU factorization can be formulated as a generalization of the b
     \label{fig:hlu}
 \end{figure}
 
-Figure~\hyperref[fig:hlu]{\ref{fig:hlu}} illustrates the structure of the sub-matrices associated with a recursive LU factorization of a $2 \times 2$ partitioning for the HODLR format. The operation starts at the root node and thus tries to factorize the big $A_{11}$  block (in black), which incurs a recursive cal on the splitting denoted in blue. After the recursion finished, blocks $A_{12}$, $A_{21}$ and $A_{22}$ can be updated before the recursion is repeated on the red splitting. It is easy to see, that the actual factorization task is exclusively executed for dense blocks, while low-rank representations are only present in update operations. A full pseudo-code denoting the whole operation is available from \cite{hackbusch_hierarchical_2015}.
+Figure~\hyperref[fig:hlu]{\ref{fig:hlu}} illustrates the structure of the sub-matrices associated with a recursive LU factorization of a $2 \times 2$ partitioning for the HODLR format. The operation starts at the root node and thus tries to factorize the big $A_{11}$  block (in black), which incurs a recursive call on the splitting denoted in blue. After the recursion finished, blocks $A_{12}$, $A_{21}$ and $A_{22}$ can be updated before the recursion is repeated on the red splitting. It is easy to see, that the actual factorization task is exclusively executed for dense blocks, while low-rank representations are only present in update operations. A full pseudo-code denoting the whole operation is available from \cite{hackbusch_hierarchical_2015}.
 
 The LU decomposition of such a hierarchical matrix can be obtained in $\mathcal{O}(n\;log(n))$, which is considerably faster than the $\mathcal{O}(n^3)$ required by a dense matrix. However, due to the hierarchical structure, efficient parallelization is more difficult to achieve, since the size of the leaves varies. The BLR format removes those implementation obstacles, but as a result, only achieves a performance of order $\mathcal{O}(n^2)$. In recent years, efficient algorithms for the $\mathcal{H}^2$ format have been developed (e.g. \cite{ma_accuracy_2018}), which enable them to calculate such a factorization in linear complexity (i.e. $\mathcal{O}(n)$). 
 
