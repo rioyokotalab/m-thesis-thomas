@@ -113,7 +113,7 @@ name BLR\textsuperscript{2} to describe such a BLR format with shared bases. The
   \right]
 \end{equation}
 
-\noindent Note that for this process to be beneficial, the QR factorization must be combined with a compression scheme, such that the rank of the resulting basis is accurately approximated. One efficient possibility would be a rank-revealing QR factorization as proposed by \cite{hong_rank-revealing_1992} or \cite{gu_efficient_1996}. Since a fixed rank $k$ was assumed in this example, the resulting bases are $U_{i}, V^T_{j} \in \realx[b]{k}$ and the matrix $S(ij) \in \realx[k]{k}$ is given for each admissible block by:
+\noindent Note that for this process to be beneficial, the QR factorization must be combined with a compression scheme, such that the rank of the resulting basis is accurately approximated. One efficient possibility would be a rank-revealing QR factorization as proposed by \cite{hong_rank-revealing_1992} or \cite{gu_efficient_1996}. Since a fixed rank $k$ was assumed in this example, the resulting bases are $U_{i}, V^T_{j} \in \realx[b]{k}$ and the matrix $S_{ij} \in \realx[k]{k}$ is given for each admissible block by:
 \begin{equation}
     S_{ij}=F_{ij} \cdot E_{ij}^T
 \end{equation}
@@ -131,7 +131,7 @@ On a practical note, the above assumption where the rank of the bases is equal t
 \subsection{Hierarchical Off-Diagonal Low-Rank (HODLR) Matrix}
 \label{sec:hodlr}
 
-In contrast to the BLR formats of the previous sections, HODLR is a true hierarchical format. Consequently, the leaves can be at different levels of the tree and calculations are a little bit more evolved, because they have to take this structure into account. Furthermore, the HOLDR format can be viewed as a general hierarchical matrix restricted to weak admissibility. As such, all non-diagonal blocks are approximated by low-rank representations. Is is usually represented by two binary index trees (to guarantee that sub-locks are as big as possible), with the depth of each tree depending on the matrix size $n$. The general structure of a HODLR matrix is presented in Figure~\hyperref[fig:hodlr]{\ref{fig:hodlr}}.
+In contrast to the BLR formats of the previous sections, HODLR is a true hierarchical format. Consequently, the leaves can be at different levels of the tree and calculations are a little bit more evolved, because they have to take this structure into account. Furthermore, the HOLDR format can be viewed as a general hierarchical matrix restricted to weak admissibility. As such, all non-diagonal blocks are approximated by low-rank representations. It is usually represented by two binary index trees (to guarantee that sub-locks are as big as possible), with the depth of each tree depending on the matrix size $n$. The general structure of a HODLR matrix is presented in Figure~\hyperref[fig:hodlr]{\ref{fig:hodlr}}.
 
 \begin{figure}[h]
     \centering
@@ -140,28 +140,28 @@ In contrast to the BLR formats of the previous sections, HODLR is a true hierarc
     \label{fig:hodlr}
 \end{figure}
 
-With this kind of structure, it is no longer possible to process the matrix block sequentially, but instead it is necessary to traverse the tree in a \textit{depth-first} fashion, visiting the nodes in a certain order. Consider, for example the first level of the HODLR matrix in Figure~\hyperref[fig:hodlr]{\ref{fig:hodlr}}:
+With this kind of structure, it is no longer possible to process the matrix blocks sequentially, but instead it is necessary to traverse the tree in a \textit{depth-first} fashion, visiting the nodes in a certain order. Consider, for example the first level of the HODLR matrix in Figure~\hyperref[fig:hodlr]{\ref{fig:hodlr}}:
 \begin{equation}
   A = 
   \left[
     \begin{array}{cc}
-      A_1& A_2 \\
-      A_3 & A_4 \\
+      A_{11}& A_{12} \\
+      A_{21} & A_{22} \\
     \end{array}
   \right]
 \end{equation}
 
-\noindent If a LU factorization of this matrix is desired, it would need to start at $A_1$ and invoke the operation recursively on all its sub-matrices, before any of the other blocks can be processed. After finishing $A_1$, $A_2$ and $A_3$ need to be updated before the Schur-complement for block $A_4$ can be calculated. However, all operations on $A_4$ would need to be done recursively again, due to its hierarchical structure. This dependencies between blocks of varying sizes make the underlying algorithms more complex than for the BLR case and load balancing more difficult on parallel architectures. Clearly, less work is associated with the blocks $A_2$ and $A_3$ and a simple distribution based on block sizes is not efficient for this type.
+\noindent If a LU factorization of this matrix is desired, it would need to start at $A_{11}$ and invoke the operation recursively on all its sub-matrices, before any of the other blocks can be processed. After finishing $A_{11}$, $A_{12}$ and $A_{21}$ need to be updated before the Schur-complement for block $A_{22}$ can be calculated. However, all operations on $A_{22}$ would need to be done recursively again, due to its hierarchical structure. This dependencies between blocks of varying size make the underlying algorithms more complex than for the BLR case and load balancing more difficult on parallel architectures. Clearly, less work is associated with the blocks $A_{12}$ and $A_{21}$ and a simple distribution based on block sizes is not efficient for this type.
 
-On the positive side, matrix-matrix computations and LU factorization can now be obtained in $\mathcal{O}(n\; log(n)$ operations and the same complexity is needed for constructing the HOLDR representation \cite{ambikasaran_fast_2016}. Even though this is the same as for general hierarchical matrices, the HODLR format generally benefits from more low-rank interactions. In other words, as long as the rank $k$ of the off-diagonal blocks remains small, this structure is the most beneficial in terms of storage and efficiency. However, guaranteeing, such a low-rank might lead to a larger error threshold for some matrices, resulting in a less accurate approximation.
+On the positive side, matrix-matrix computations and LU factorization can now be obtained in $\mathcal{O}(n\; log(n))$ operations and the same complexity is needed for constructing the HOLDR representation \cite{ambikasaran_fast_2016}. Even though this is the same as for general hierarchical matrices, the HODLR format generally benefits from more low-rank interactions. In other words, as long as the rank $k$ of the off-diagonal blocks remains small, this structure is the most beneficial in terms of storage and efficiency. However, guaranteeing, such a low-rank might lead to a larger error threshold for some matrices, resulting in a less accurate approximation.
 
-An entire library dedicated to this format and providing the most common operations is available from \cite{ambikasaran_hodlrlib_2019}
+An entire library dedicated to this format and providing the most common operations is available from \cite{ambikasaran_hodlrlib_2019}.
 
 
 \subsection{Hierarchical Semi-Separable (HSS) Matrix}
 \label{sec:hss}
 
-The hierarchical semi-seperable format is basically a shared bases extension of the HODLR structure. With respect to the hierarchical structure, however just sharing is not enough for this format, the bases must be \textit{nested} as well, since their sizes differ. Consider, for example the construction of a row basis for the the first level of the HODLR format. By looking at Figure~\hyperref[fig:hodlr]{\ref{fig:hodlr}}, it is evident that a common basis of the blocks $A_3$ and $A_4$ must provide a way to obtain the large green $U^{big}$ as well as the the two smaller blue and brown $U$s. Usually, this is solved by storing the basis in the smaller matrices, and then constructing the larger $U^{big}$ from those two via a so called \textit{transfer} matrix. Using this approach, only the relatively small transfer matrices need to be stored for the larger blocks, while the bases are entirely represented within the smallest level blocks. The resulting storage format is illustrated in Figure~\hyperref[fig:hss]{\ref{fig:hss}}.
+The hierarchical semi-seperable format is basically a shared bases extension of the HODLR layout. With respect to the hierarchical structure, however just sharing is not enough for this format, the bases must be \textit{nested} as well, since their sizes differ. Consider, for example the construction of a row basis for the the first level of the HODLR format. By looking at Figure~\hyperref[fig:hodlr]{\ref{fig:hodlr}}, it is evident that a common basis of the blocks $A_3$ and $A_4$ must provide a way to obtain the large green $U^{big}$ as well as the the two smaller, blue and brown $U$s. Usually, this is solved by storing the basis in the smaller matrices, and then constructing the larger $U^{big}$ from those two via a so called \textit{transfer} matrix. Using this approach, only the relatively small transfer matrices need to be stored for the larger blocks, while the bases are entirely represented within the smallest level blocks. The resulting storage format is illustrated in Figure~\hyperref[fig:hss]{\ref{fig:hss}}.
 
 \begin{figure}[h]
     \centering
@@ -190,7 +190,7 @@ The construction of such bases is slightly more evolved than for the BLR\textsup
   \right]
 \end{equation}
 
-\noindent In this notation, the superscript marks the level and non-admissible blocks are denoted with $D$ (for diagonal) in order to avoid confusion. In order to calculate the $U$ and $V$ for the blocks in each  level, it is necessary to consider all admissible blocks in the same column/row \cite{xia_fast_2010}. Starting from the leaf level those are obtained for the first row and column by means of the QR factorization as follows:
+\noindent In this notation, the superscript marks the level and non-admissible blocks are denoted with $D$ (for diagonal) to avoid confusion. In order to calculate the $U$ and $V$ for the blocks in each  level, it is necessary to consider all admissible blocks in the same column/row \cite{xia_fast_2010}. Starting from the leaf level those are obtained for the first row and column by means of the QR factorization as follows:
 \begin{equation}
   \left[
     \begin{array}{ccc}
@@ -270,7 +270,7 @@ The construction of such bases is slightly more evolved than for the BLR\textsup
   \right]
 \end{equation}
 
-\noindent Now the first level transfer matrices $\iter[1]{R}_{21}$ and $\iter[1]{W}_{12}$ can be obtained from merging and re-compressing the appropriate second level bases:
+\noindent Now the first level transfer matrices $\iter[1]{R}_{12}$ and $\iter[1]{W}_{21}$ can be obtained from merging and re-compressing the appropriate second level bases:
 \begin{equation}
   \left[
     \begin{array}{cc}
@@ -278,21 +278,21 @@ The construction of such bases is slightly more evolved than for the BLR\textsup
       \iter[2]{T}_{23}& \iter[2]{T}_{24}  \\
     \end{array}
   \right]
-  =  \iter[1]{R}_{21} \iter[1]{T}_{21}\text{,}\;\; \text{ and }\;\; 
+  =  \iter[1]{R}_{12} \iter[1]{T}_{12}\text{,}\;\; \text{ and }\;\; 
   \left[
     \begin{array}{cc}
       Z_{31}^{(2)T}& Z_{41}^{(2)T}  \\
       Z_{32}^{(2)T}& Z_{42}^{(2)T}  \\
     \end{array}
-  \right] = \iter[1]{W}_{12}Z_{12}^{(1)T} 
+  \right] = \iter[1]{W}_{21}Z_{21}^{(1)T} 
 \end{equation}
 
-\noindent Bases and transfer matrices for the other blocks can be obtained in an analogous fashion and in case of a deeper tree, the same process has to be repeated recursively on each level. A graphical interpretation of the above process is given in Figure~\hyperref[fig:nested_bases]{\ref{fig:nested_bases}}. The calculations follow the general algorithm outlined in \cite{xia_fast_2010}, but different approaches are possible (see, for example \cite{martinsson_fast_2011}. The construction of an HSS matrix is generally more costly than HODLR, with an complexity of $\mathcal{O}(n^2)$. However, as its main advantage, storage requirements can be reduced dramatically and for certain types of matrices almost linear scaling is achieved. Furthermore, there are algorithms which can solve linear system involving an HSS matrix in $\mathcal{O}(n)$ \cite{chandrasekaran_fast_2006}.
+\noindent Bases and transfer matrices for the other blocks can be obtained in an analogous fashion and in case of a deeper tree, the same process has to be repeated recursively on each level. A graphical interpretation of the above process is given in Figure~\hyperref[fig:nested_bases]{\ref{fig:nested_bases}}. The calculations follow the general algorithm outlined in \cite{xia_fast_2010}, but different approaches are possible (see, for example \cite{martinsson_fast_2011}). The construction of an HSS matrix is generally more costly than HODLR, with an complexity of $\mathcal{O}(n^2)$. However, as its main advantage, storage requirements can be reduced dramatically and for certain types of matrices almost linear scaling is achieved. Furthermore, there are algorithms which can solve linear system involving an HSS matrix in $\mathcal{O}(n)$ \cite{chandrasekaran_fast_2006}.
 
 \begin{figure}[h]
     \centering
     \includegraphics[width=0.6\linewidth]{chapters/4_hierarchical_matrices/figures/nested_basis.pdf}
-    \caption[Nested Bases Construction]{Construction of the nested bases for the HSS format. $\iter[1]{R}_{21}$ and $\iter[1]{W}_{12}$ are the transfer matrices used to obtain $\iter[1]{U}_{21}$ $\iter[1]{V}_{21}$ from the bases stored at the leaf level.}
+    \caption[Nested Bases Construction]{Construction of the nested bases for the HSS format. $\iter[1]{R}_{12}$ and $\iter[1]{W}_{21}$ are the transfer matrices used to obtain $\iter[1]{U}_{12}$ $\iter[1]{V}_{21}$ from the bases stored at the leaf level.}
     \label{fig:nested_bases}
 \end{figure}
 
