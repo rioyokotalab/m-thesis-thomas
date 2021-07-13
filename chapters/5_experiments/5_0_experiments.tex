@@ -1,6 +1,16 @@
 \chapter{Experiments}
 \label{chap:experiments}
 
+The iterative refinement method implemented in this research is based on the findings of \cite{carson_new_2017}, providing the fundamental groundwork for obtaining accurate solutions even for ill-conditioned matrices. This approach was extended in \cite{carson_accelerating_2018} to iterative refinement in three precisions, providing a MATLAB implementation for numerical experiments. However, while invaluable for the purpose of numerical analysis and research, such implementations are hardly used for applications in high-performance computing due to their performance limitations. In such a setting, it is common to rely on the fast linear algebra routines provided by highly optimized kernels from libraries like as BLAS or LAPACK which are known for their efficiency and numerical stability. Those routines have been fine-tuned and optimized for many years on different central processing units (CPUs), but until recently did not consider mixed precision algorithms. Due to the increasing memory gap and parallelization efforts on current computing architectures, which gave rise to a number of specialised processing units (e.g. TPU), efforts have been made to incorporate mixed precision algorithms. For example the single-double precision iterative refinement propsed by \cite{langou_exploiting_2006}, is now available in the LAPACK routine \textit{DSGESV} for architectures featuring a high single precision arithmetic performance. Additionally, this algorithm has the advantage that data movement is cut in half, reducing communication (on distributed systems) and increasing cache performance. 
+
+Nonetheless, to the author's best knowledge, there currently exists no high-performance implementation of iterative refinement in three precisions for CPUs. The first section of this chapter will thus be dedicated to such an implementation, hoping to establish a common baseline for future research. This includes verification of the numerical results obtained by \cite{carson_accelerating_2018} as well as a performance analysis compared to traditional approaches. The goal is to establish a mixed precision framework based on optimized LAPACK/BLAS routines that is able to deliver both high accuracy and performance.
+
+This implementation will then be used as a reference for extending the method to hierarchical matrices in the next section. Common low-rank approximation techniques will be used to replace the low-precision factorization step in the IR algorithm in order to reduce the overall complexity down to $\mathcal{O}(n^2)$. By controlling the accuracy of the approximation, it should be possible to guarantee error-bounds similar to the general case and this hypothesis is investigated empirically. To gain further insights into the capability of low-rank representations to maintain information that is crucial for iterative refinement, experiments will be conducted for various condition numbers and accuracies of the approximations.
+
+The last sections will then be dedicated to the combination of hierarchical matrices and low-precision and parallel implementations, investigating whether or not there is potential for additional optimization.
+
+error formulas
+double-double
 \import{}{5_1_mixed_precision.tex}
 \import{}{5_2_low_rank.tex}
 \import{}{5_3_combination.tex}
