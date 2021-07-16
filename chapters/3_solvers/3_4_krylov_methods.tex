@@ -106,7 +106,7 @@ The easiest way to interpret the conjugated gradient method (first proposed by H
 \noindent Finally, it should be noted that the formulation in Algorithm~\hyperref[alg:conjugate_gradient]{\ref{alg:conjugate_gradient}} is the one originally proposed by \cite{hestenes_methods_1952}, but several other alternative variants are possible (for example based on the Lanczos iteration, see Section~\hyperref[sec:lanczos]{\ref{sec:lanczos}}). The key point is the construction of the orthogonal bases for the Krylov subspace $\mathcal{K}_m$ and, depending on how those are obtained (e.g. the orthogonalization scheme employed), the denotations of the algorithms deviate slightly. Due to the importance of this part for all Krylov subspace based iterative methods, the two main techniques for obtaining such bases will be discussed in the next sections.
 
 
-\subsection{Arnolid's method}
+\subsection{Arnoldi's method}
 \label{sec:arnoldi}
 This method, first proposed by Arnoldi \cite{arnoldi_principle_1951} enforces the Galerkin condition $A\iter[m]{x} -b \perp \mathcal{K}_m$ onto the constructed Krylov subspace and is applicable to general non-symmetric matrices. It was originally proposed for the purpose of reducing a dense matrix into Hessenberg form via a unitary transformation. But at its core, it is an algorithm for building an orthogonal basis of the Krylov subspace $\mathcal{K}_m$. It was later discovered that it is also an efficient technique for eigenvalue approximation, and was then extended to the solution of linear systems \cite{saad_iterative_2003}. 
 

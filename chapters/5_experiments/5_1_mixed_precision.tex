@@ -47,7 +47,7 @@ In order to obtain accurate condition numbers even for very ill-conditioned syst
 
 There are two important observations to be made. First, as can be seen from Figure~\hyperref[fig:gmrese18]{\ref{fig:gmrese18}}, the algorithm converges to a solution accurate to working precision (i.e. double) even if $\kappa_\infty(A) > 10^{16}$. Therefore this approach is promising for very ill-conditioned systems, even though the boundaries for convergence remain (currenly) unclear (see \cite{carson_new_2017}). However, it has been demonstrated by \cite{carson_accelerating_2018}, that this method is able to tolerate LU factors that are computed at half the working precision. 
 
-Secondly, as revealed by a comparison of Figure~\hyperref[fig:lue_ir]{\ref{fig:lue_ir}} \& \hyperref[fig:gmrese18_ir]{\ref{fig:gmrese_ir}}, the necessary number of iterative refinement steps is reduced when compared to the LU-based algorithm. Despite a lower number of steps, the GMRES-based variant generally takes longer to execute, because the true cost is hidden within the GMRES iterations. When the convergence tolerance of GMRES is set to $10^{-4}$ (as proposed in \cite{carson_new_2017}), the average number of GMRES iterations for the above test matrices is $16$ for each IR step. Consequently, performance is highly dependent on the convergence of GMRES and thus on the distribution of the singular values. Hence, for most practical use-cases, the increased numerical stability is associated with a higher runtime and unless the system is very ill-conditioned standard LU-based iterative refinement is usually the preferable choice.
+Secondly, as revealed by a comparison of Figure~\hyperref[fig:lue_ir]{\ref{fig:lue_ir}} \& \hyperref[fig:gmrese_ir]{\ref{fig:gmrese_ir}}, the necessary number of iterative refinement steps is reduced when compared to the LU-based algorithm. Despite a lower number of steps, the GMRES-based variant generally takes longer to execute, because the true cost is hidden within the GMRES iterations. When the convergence tolerance of GMRES is set to $10^{-4}$ (as proposed in \cite{carson_new_2017}), the average number of GMRES iterations for the above test matrices is $16$ for each IR step. Consequently, performance is highly dependent on the convergence of GMRES and thus on the distribution of the singular values. Hence, for most practical use-cases, the increased numerical stability is associated with a higher runtime and unless the system is very ill-conditioned standard LU-based iterative refinement is usually the preferable choice.
 
 Nonetheless, due to its tolerance for low-precision LU factors, the method might still be beneficial for general systems, if the iterative refinement process is generalized to three precisions. In this case, the reduced cost of the factorization might be enough to offset the additional costs, resulting in a better performance overall. Since traditional iterative refinement is directly dependent on the accuracy of the factorization, its usefulness for low-precision calculations is limited as well. The examples provided in Figure~\hyperref[fig:lu_ir3]{\ref{fig:lu_ir3}} demonstrate the breakdown of IR for a condition number of $\kappa_\infty (A)=10^9$, if the factorization is calculated in single precision. It is noteworthy, that this restriction is independent of how the other precisions are chosen and cannot be offset by, for example, calculating the residuals in twice the working precision.
 
@@ -102,7 +102,7 @@ For iterative refinement in two precisions (single and double), \cite{langou_exp
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\linewidth]{chapters/5_experiments/figures/IR3_acc.pdf}
+    \includegraphics[width=0.7\linewidth]{chapters/5_experiments/figures/IR3_acc.pdf}
     \caption[IR - Forward Error 1]{Forward error analysis of different routines for solving a linear system. Note that DSGESV does not converge for $\kappa_\infty(A)=10^8$.}
     \label{fig:ir3_ac}
 \end{figure}
@@ -113,7 +113,34 @@ It is worth mentioning that the the achieved accuracy can be guaranteed independ
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=0.9\linewidth]{chapters/5_experiments/figures/IR3_n.pdf}
+    \includegraphics[width=0.7\linewidth]{chapters/5_experiments/figures/IR3_n.pdf}
     \caption[IR - Forward Error 2]{Forward error analysis with respect to the matrix size $n$ for $\kappa_\infty(A)=10^8$. The accuracy remains relatively constant.}
     \label{fig:ir3_n}
+\end{figure}
+
+Turning to the actual runtime behaviour, all routines have been executed five times, taking the mean as a representative for the computation time. The obtained measurements are displayed in Figure~\hyperref[fig:ir3_n]{\ref{fig:ir3_n}}. It needs to be remarked that there seems to be a large overhead for the first call to the LAPACK functions in each experiment, influencing the performance of those routines for $\kappa_\infty(A)=10^2$. Therefore, those measurements are not representative and can not be interpreted easily. Since the matrix size does not change, the performance of \textit{DGESV} and \textit{LU-IR (ddq)} (always two iterations) should remains somewhat constant, since they are independent of the condition number). Furthermore, it is noticeable that the single precision factorization of the \textit{DSGESV} is advantageous, except for the ill-conditioned case where no convergence can be achieved (this is indicated by a $0$ on top of the bar, but in reality this routine computes 30 iterations and then falls back to \textit{DGESV}, explaining the large runtime).
+
+The results for \textit{LU-IR (sdd)} indicate the difference between a highly optimized two precision kernel and the three precision variant of the algorithm, usually requiring the same number of iterations. The performance of \textit{LU-IR (ddq)} shows that the overhead of calculating the residuals in quadruple precision is considerable, because this floating-point format is not directly supported in hardware. Finally the runtime of \textit{GMRES-IR (sdq)} hinges on the number of internal GMRES iterations, which are quite costly due to the high-precision calculations involved. 
+
+There are three main conclusions to be drawn from these results:
+\begin{enumerate}
+    \item The performance of iterative refinement depends on the condition number of the matrix, resulting in slow convergence or breakdown for ill-conditioned systems.
+    \item The higher error bound of \textit{GMRES-IR (sdq)} comes at the cost of additional calculations and is only efficient for a low number of GMRES iterations.
+    \item The cost of floating-point arithmetics that are not supported in hardware is considerable and better results might be expected from a half - single - double precision approach.
+\end{enumerate}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{chapters/5_experiments/figures/IR3_runtime.pdf}
+    \caption[IR - Runtime]{Runtime analysis with respect to the condition number for a constant matrix size ($n=512$). The number of iterations for each method is annotated at the top of the bar and is equal to the number of created solutions. $0$ indicates that the routine did not converge.}
+    \label{fig:ir3_time}
+\end{figure}
+
+\noindent Even though some of the linear solving techniques clearly perform better than other ones, they all share the same runtime complexity of $\mathcal{O}(n^3)$. This is illustrated in Figure~\hyperref[fig:ir3_scale]{\ref{fig:ir3_scale}} for the direct solving as well as LU- and GMRES-based iterative refinement. 
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.7\linewidth]{chapters/5_experiments/figures/IR3_scaling.pdf}
+    \caption[IR - Scaling]{Runtime analysis with respect to the matrix size for a constant condition number($\kappa_\infty(A)=10^5$). All methods remain within $\mathcal{O}(n^3)$.}
+    \label{fig:ir3_scale}
 \end{figure}
