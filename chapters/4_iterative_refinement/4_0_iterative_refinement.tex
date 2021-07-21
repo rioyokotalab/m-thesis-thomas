@@ -13,7 +13,7 @@ In general, the following ordering applies to the precisions used:
     u_r \leq u \leq u_s \leq u_f
 \end{equation}
 
-\noindent Algorithm~\hyperref[alg:iterative_refinement]{\ref{alg:iterative_refinement}} (modified after \cite{carson_new_2017}) illustrates this general case of iterative refinement. Note that $u$, $u_f$ and $u_r$ are intended to be (possibly) different precisions, while $u_s$ is essentially a parameter describing how accurately the correction equation is solved. Depending on the solving technique employed, it will either take the value of $u_f$ or $u$ in the context of this research. Since the convergence of iterative refinement is restricted by the condition number of the matrix $A$, it is common to limit the maximum number of iterations by a value $i_{max}$ after which the algorithm is guaranteed to terminate, no matter whether convergence was achieved or not. Similarly, a tolerance value $\epsilon \geq 0$ can be specified for the approximate solution in order to detect early convergence if a desired accuracy has been achieved.  Note that the formulation of the stopping criterion in the algorithm can be formulated in terms of any desired norm $p$ and a detailed discussion of this topic can be found in \cite{demmel_error_2006}.
+\noindent Algorithm~\hyperref[alg:iterative_refinement]{\ref{alg:iterative_refinement}} (modified after \cite{carson_new_2017}) illustrates this general case of iterative refinement. Note that $u$, $u_f$ and $u_r$ are intended to be (possibly) different precisions, while $u_s$ is essentially a parameter describing how accurately the correction equation is solved. Depending on the solving technique employed, it will either take the value of $u_f$ or $u$ in the context of this research. Since the convergence of iterative refinement is restricted by the condition number of the matrix $A$, it is common to limit the maximum number of iterations by a value $i_{max}$ after which the algorithm is guaranteed to terminate, no matter whether convergence was achieved or not. Similarly, a tolerance value $\epsilon_{max} \geq 0$ can be specified for the approximate solution in order to detect early convergence if a desired accuracy has been achieved.  Note that this stopping criterion in the algorithm can be formulated in terms of any desired norm $p$ and a detailed discussion of this topic can be found in \cite{demmel_error_2006}.
 
 \begin{algorithm}[h]
   \caption{General iterative refinement in three precisions}
@@ -24,6 +24,7 @@ In general, the following ordering applies to the precisions used:
   solve $A\iter[0]{x}=b$ in precision $u_f$ and store $x_0$ at precision $u$ \\
   \For{$k = 1$ \KwTo $k_{max}$} {
     compute $\iter[k]{r} = b-A\iter[k]{r}$ in precision $u_r$ and round $\iter[k]{r}$ to precision $u$ \\
+    \If{$\normd{\iter[k]{r}}_p) \leq \epsilon_{max}$}{\Return $\iter[k]{x}$}
     solve $A\iter[k]{d}=\iter[k]{r}$ in precision $u_s$ and store $\iter[k]{d}$ at precision $u$ \\
     $\iter[k+1]{x}=\iter[k]{x}+\iter[k]{d}$ in precision $u$}
   \% iteration has not converged

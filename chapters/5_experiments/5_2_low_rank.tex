@@ -1,11 +1,12 @@
 \section{IR with Low-Rank Preconditioner}
 \label{sec:low_rank}
 
-For evaluation of iterative refinement with low-rank preconditioners, it was necessery to adapt the experimental settings to fit this new environment. Instead of ordinary random matrices, structured random matrices were used, as those guarantee the existence of low-rank approximations with adjustable accuracy based on the chosen rank. In order to account for the higher performance of such representations, $4096 \times 4096$ element matrices were added to the test set. Each test matrix was created with a laplacian kernel from a randomized, ordered vector. A similar vector was used for the accurate solution $\hat{x}$ and the right hand-side $b$ was calculated via $b = A\hat{x}$. The condition numbers of these matrices were set by adjusting their absolute values and the resulting quantities were then used as the input for the solver. Both GMRES- and LU- based IR procedures were adapted to first create a hierarchical representation of $A$ and the use the LU factors obtained from this matrix during the iteration steps. The accuracy of the hierarchical representation (denoted as $\epsilon$) was controlled via the rank, trying to find settings close to $\{10^{-2}, 10^{-4}, 10^{-6}, 10^{-8}\}$ (the reciprocals of the evaluated condition numbers).
-Both methods were evaluated with the precisions set to: $u_f= double$, $u= double$, $u_r= quadruple$.
+For evaluation of iterative refinement with low-rank preconditioners, it was necessary to adapt the experimental settings to fit this new environment. Instead of ordinary random matrices, structured random matrices were used, as those guarantee the existence of low-rank approximations with adjustable accuracy based on the chosen rank. In order to account for the higher performance of such representations, $4096 \times 4096$ element matrices were added to the test set. Each test matrix was created with a two-dimensional laplacian kernel from a randomized, ordered vector. An ordinary radnom vector was used for the accurate solution $x$ and the right hand-side $b$ was calculated via $b = Ax$. The condition numbers of these matrices were set by adjusting their absolute values of the base vector and the resulting quantities were then used as the input for the solver. Both GMRES- and LU- based IR procedures were adapted to first create a hierarchical representation of $A$ and then use the LU factors obtained from this matrix during the iteration steps. The accuracy of the hierarchical representation (denoted as $\epsilon$) was controlled via the rank, trying to find settings close to $\{10^{-2}, 10^{-4}, 10^{-6}, 10^{-8}\}$ (the reciprocals of the evaluated condition numbers). This was done by checking the Frobenius norm of the error matrix (i.e. the difference between the approximation and the orignal), testing several ranks (from 1-15), picking the one with the closest accuracy to the above values.
+
+Both methods were evaluated with the precision set as $u_f= double$, $u= double$, $u_r= quadruple$.
 Note that even though the factorization precision is double, the actual accuracy is limited by the parameter $\epsilon$ and a single solve with those LU factors cannot expect to achieve an error smaller than this threshold. The result of the error analysis for different test-matrices with a size of $512 \times 512$ are displayed in Figures~\hyperref[fig:lrir1]{\ref{fig:lrir1}} - \hyperref[fig:lrir4]{\ref{fig:lrir4}}.
 
-\begin{figure}
+\begin{figure}[h]
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
@@ -23,7 +24,7 @@ Note that even though the factorization precision is double, the actual accuracy
 \label{fig:lrir1}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
@@ -41,7 +42,7 @@ Note that even though the factorization precision is double, the actual accuracy
 \label{fig:lrir2}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
@@ -59,7 +60,7 @@ Note that even though the factorization precision is double, the actual accuracy
 \label{fig:lrir3}
 \end{figure}
 
-\begin{figure}
+\begin{figure}[h]
 \centering
 \begin{subfigure}{.5\textwidth}
   \centering
@@ -77,7 +78,7 @@ Note that even though the factorization precision is double, the actual accuracy
 \label{fig:lrir4}
 \end{figure}
 
-First we note that the hierarchical representation seems to help with the condition number, achieving convergence in all cases if $\epsilon$ is small enough. Even for the case $\kappa\infty(A)=10^8$, where we observed breakdown of LU-based IR in the three precision setting (see Section~\hyperref[sec:low_precision_ir]{\ref{sec:low_precision_ir}}), the low-rank LU iterative refinement process still converges. However, while both norm-wise and component-wise backward errors can be reduced down to working precision, the accuracy of the forward error seems to be limited. Based on the conducted experiments it seems to be restricted by the product of the working precision $u$ and the condition number $\kappa\infty(A)$, which is represented as a dashed line in the plots. Based on the numerical results obtained, this seems to be an accurate estimation and is, most interestingly, independent from the accuracy of the factorization $\epsilon$.
+First, it is notable that the hierarchical representation seems to help with the condition number (due to the double precision employed), achieving convergence in all cases if $\epsilon$ is small enough. Even for the case $\kappa_\infty(A)=10^8$, where the LU-based IR in the three precision setting is on the verge of breakdown (see Section~\hyperref[sec:low_precision_ir]{\ref{sec:low_precision_ir}}), the low-rank LU iterative refinement process still converges. However, while both norm-wise and component-wise backward errors can be reduced down to working precision, the accuracy of the forward error seems to be limited. This is an artefact of the change in measurements, due to the comparison with the actual true solution, instead of a solution calculated at higher precision. As a result, the forward error is restricted by the product of the working precision $u$ and the condition number $\kappa\infty(A)$, which is represented as a dashed line in the plots. Based on the numerical results obtained, this seems to be an accurate estimation and is, most interestingly, independent from the accuracy of the factorization $\epsilon$.
 
 While it might not be the deciding factor for convergence itself, the number of iterations (and thus the convergence speed) are highly dependent on $\epsilon$. This can be observed quite clearly in Figures~\hyperref[fig:lrir2_1]{\ref{fig:lrir2_1}} \& \hyperref[fig:lrir2_2]{\ref{fig:lrir2_2}}, where LU-based iterative refinement converges in 4 steps with $\epsilon = 10^{-4}$ while more than $10$ iterations would be necessary for $\epsilon = 10^{-2}$. For the case of GMRES-based IR, the connection is less obvious, but still observable. Despite that, the influence on the number of inner GMRES iterations seems to be limited without any immediately visible correlations. Further research would be necessary in order to investigate this behaviour.
 
@@ -96,7 +97,7 @@ Nonetheless, it is worth investigating, as it is an essential criterion for the 
     \item \textit{LU preconditioner}: Using the approximate LU factors for preconditioning.
 \end{itemize}
 
-\noindent Since both variants need about the same number of IR steps before convergence, the comparison is focused on the number of inner GMRES iterations. A comparison of the obtained numbers for the first IR step can be seen in Figure~\hyperref[fig:lr_ir_iter]{\ref{fig:lr_ir_iter}}. Since the variation within different settings for $\epsilon$ (within the same condition number) is negligible, the average has been chosen as a representative value. The absolute difference in the number of iterations for Jacobi and LU preconditioning increases and decreases with the matrix size, but remains considerable for all tested values of $n$. From this, it is obvious that the advantages of having an approximate LU factorization (that is cheap to compute) available are considerable. Even though the application of the diagonal preconditioner is cheaper, it is not fast enough to account for the huge difference in iteration count between those two methods. 
+\noindent Since both variants need about the same number of IR steps before convergence, the comparison is focused on the number of inner GMRES iterations. A comparison of the obtained numbers for the first IR step can be seen in Figure~\hyperref[fig:lr_ir_iter]{\ref{fig:lr_ir_iter}}. Since the variation within different settings for $\epsilon$ (within the same condition number) is negligible, the average has been chosen as a representative value. The absolute difference in the number of iterations for Jacobi and LU preconditioning increases and decreases with the matrix size, but remains substantial for all tested values of $n$. From this, it is obvious that the advantages of having an approximate LU factorization (that is cheap to compute) available are considerable. Even though the application of the diagonal preconditioner is cheaper, it is not fast enough to account for the huge difference in iteration count between those two methods. 
 
 \begin{figure}[h]
     \centering
@@ -118,7 +119,7 @@ The performance of LU- and GMRES-based iterative refinement, on the other hand, 
 
 Furthermore, the number of iterations necessary for LU-based IR can be directly controlled via the parameter $\epsilon$. In the set of test matrices used, decreasing this accuracy threshold by a factor of $10^{-2}$, typically only increased the rank by a small amount($+2$ or $+3$). The high performance of hierarchical formats is based on the assumption that $rank \ll n$ and the influence of such a slight increase might be negligible. Thus, if a higher accuracy can be achieved without deteriorating the efficiency of the hierarchical format, LU-based IR is expected to outperform GMRES for almost all settings. However, further research and experiments are necessary to investigate this hypothesis.
 
-Finally, the graph in Figure~\hyperref[fig:lr_ir_iter]{\ref{fig:lr_ir_iter}} also serves to demonstrate that the proposed approach is not beneficial for small matrix sizes. Due to the highly optimized linear algebra kernels available (e.b. BLAS, LAPACK), direct solving via LU factorization can be done very performance efficient. Indeed for $n \leq 4096$, no advantage in runtime can be observed for the proposed methods. Even though, the scaling of the methods is inarguably different, with both LU- and GMRES-based iterative refinement exhibiting a complexity of $\mathcal{O}(n^2)$, while direct solving clearly surpasses that threshold (and in fact, is known to scale with $\mathcal{O}(n^3)$). Therefore, iterative refinement based on low-rank approximations becomes increasingly attractive for larger matrices, promising to achieve equal results while being an order of magnitude faster.
+Finally, the graph in Figure~\hyperref[fig:lr_ir_iter]{\ref{fig:lr_ir_iter}} also serves to demonstrate that the proposed approach is not beneficial for small matrix sizes. Due to the highly optimized linear algebra kernels available (e.g. BLAS, LAPACK), direct solving via LU factorization can be done very performance efficient. Indeed for $n \leq 4096$, no advantage in runtime can be observed for the proposed methods. Even though, the scaling of the methods is inarguably different, with both LU- and GMRES-based iterative refinement exhibiting a complexity of $\mathcal{O}(n^2)$, while direct solving clearly surpasses that threshold (and in fact, is known to scale with $\mathcal{O}(n^3)$). Therefore, iterative refinement based on low-rank approximations becomes increasingly attractive for larger matrices, promising to achieve equal results while being an order of magnitude faster.
 
 
 

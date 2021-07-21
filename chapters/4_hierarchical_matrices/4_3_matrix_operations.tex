@@ -12,7 +12,7 @@ The assessment of the latter might differ depending on which matrix operations a
 The details of these operations for the hierarchical formats introduced previously will be detailed in the following sections. Note that the discussion within this thesis will be limited to complexity analysis only, but empirical results are available from \cite{spalthoff_pg_hierarchical_2020}.
 
 
-\section{Matrix-Vector Multiplication}
+\subsection{Matrix-Vector Multiplication}
 \label{sec:matrix_vector}
 
 Consider the product resulting from multiplying an  $\mathcal{H}$-matrix $A \in \realx{n}$ with a vector $x$ such that:
@@ -46,7 +46,7 @@ In case of the first diagonal sub-matrix (and equivalently for every other dense
 
 \noindent Since the workload associated with each low-rank sub-matrix is now bounded in terms of the rank $k$ by at most $2k(|t|+|s|)$ and the dense blocks are rather small (and achieve a similar bound, but with a different constant), matrix-vector multiplication can be performed in $\mathcal{O}(n\;log(n))$ operations (see \cite{bebendorf_hierarchical_2008}), for a balanced cluster tree. In the case of nested bases, the amount of work can be further reduced due to the fact that only one multiplication with the basis is necessary. By looking at Figure~\hyperref[fig:hss]{\ref{fig:hss}}, it becomes clear that instead of $Vx_s = z_s$, we know have $TVx_s = z_s$, where $T$ is a small transfer matrix and $V$ corresponds to the shared basis. Thus, by calculating $Vx_s = \Tilde{x}_s$ only once for each row, the computation for the low-rank blocks is reduced to $T\Tilde{x}_s$ and the total work decreases. Analogously, the same argument can be applied to the columns, decreasing the complexity of the matrix-vector product down to $\mathcal{O}(n)$ for $\mathcal{H}^2$-matrices (see \cite{hackbusch_hierarchical_2015} for a complete proof).
 
-\section{Matrix-Matrix Multiplication}
+\subsection{Matrix-Matrix Multiplication}
 \label{sec:matrix_matrix}
 
 In order to highlight the importance of matrix-matrix multiplication in the context of solving linear systems, a slight extension of the definition is necessary. While a general system of the form $Ax=b$ determines a single solution corresponding to a single right-hand side $b \in \real{}$, many applications actually require solutions to multiple right hand sides $\bm{b}_1, \bm{b}_1, \cdots \bm{b}_m $. Even though the result could be obtained by calculating simple matrix-vector products with different right-hand sides, the computation can be done more efficiently if expressed as matrix-matrix multiplication. Therefore, the system is extended to:
@@ -132,7 +132,7 @@ Consider a matrix $A$ built from the cluster tree $\mathcal{T}_{I\times J}$ and 
 Analogously, for $\mathcal{H}^2$-matrices, \cite{borm_h2-matrix_2006} demonstrated that linear complexity can be achieved by optimizing the algorithm.
 
 
-\section{LU Factorization}
+\subsection{LU Factorization}
 \label{sec:h_lu}
 The hierarchical LU factorization can be formulated as a generalization of the blocked right-looking LU algorithm \cite{carratala-saez_exploiting_2019}. However, it is now advisable to exploit the hierarchical structure of the matrix in order to achieve faster computations. As it is possible to formulate all operations on the leaf-level of the matrix, the only changes necessary in the blocked LU algorithm are due to the hierarchy of the cluster tree (i.e. blocks of varying sizes). The general blocked LU factorization takes the form:
 \begin{equation}

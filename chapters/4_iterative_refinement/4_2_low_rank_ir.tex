@@ -3,7 +3,7 @@
 
 The main observations from the previous section can be summarized as follows:
 \begin{itemize}
-    \item A linear system can be solved with a norm-wise backward error of order $u$, if the condition number $kappa_\infty(A)u$ is sufficiently less than one.
+    \item A linear system can be solved with a norm-wise backward error of order $u$, if the condition number $\kappa_\infty(A)u$ is sufficiently less than one.
     \item A similar result can be shown for the component-wise backward error as long as $cond_\infty(A)u \ll 1$ is satisfied.
     \item The preconditioned system $ \hat{U}^{-1}\hat{L}^{-1}A\iter[k]{d}=\hat{U}^{-1}\hat{L}^{-1}\iter[k]{r}$ can be solved with a backward error of order $u$ even if the factorization is computed in half the working precision (i.e. $u=u_f^2$).
 \end{itemize}
@@ -20,12 +20,12 @@ However, their framework does not use the LU factors directly, but instead exten
     E=\hat{U}^{-1}\hat{L}^{-1}A-I
 \end{equation}
 
-\noindent Let the preconditioner be defined as $M=\hat{L}\hat{U}$, then the experiments conducted in \cite{higham_new_2019} indicate that the singular values of $M$ are usually of the same order of magnitude as those of $A$ and $A^-1$ has numerically low-rank for all tested matrices. $M^{-1}$ is expected to retain this low rank property since, given that $A=M+\Delta A \in \realx{n}$ is non-singular, the rank $k$ accuracy of $M^{-1}$ satisfies:
+\noindent Let the preconditioner be defined as $M=\hat{L}\hat{U}$, then the experiments conducted in \cite{higham_new_2019} indicate that the singular values of $M$ are usually of the same order of magnitude as those of $A$ and $A^{-1}$ has numerically low-rank for all tested matrices. $M^{-1}$ is expected to retain this low rank property since, given that $A=M+\Delta A \in \realx{n}$ is non-singular, the rank $k$ accuracy of $M^{-1}$ satisfies:
 \begin{equation}
     \epsilon_k(M^{-1}) \leq \alpha\beta\epsilon_k(A^{-1})\text{,} \;\; \text{ with } \;\; 1\leq k \leq n
 \end{equation}
 
-\noindent In this formula the variables $\alpha$ and $\beta$ are defined such that $\alpha=1+\norm{A^{-1}\Delta A}_2$ and $\beta=1+\norm{M^{-1}\Delta A}_2$. By defining another variable $mu$, a bound on the error matrix $E=M^{-1}\Delta A$ can be found such that $\mu$ is given by:
+\noindent In this formula the variables $\alpha$ and $\beta$ are defined such that $\alpha=1+\norm{A^{-1}\Delta A}_2$ and $\beta=1+\norm{M^{-1}\Delta A}_2$. By defining another variable $\mu$, a bound on the error matrix $E=M^{-1}\Delta A$ can be found such that $\mu$ is given by:
 \begin{equation}
     \mu=\frac{\normd{M^{-1}}_2\normd{\Delta A}_2}{\normd{M^{-1}\Delta A}_2}
 \end{equation}

@@ -1,0 +1,4 @@
+\chapter*{Abstract}
+\label{chap:abstract}
+
+Many scientific and engineering applications require fast and accurate solutions to a linear system of the form $Ax = b$. However, due to the limitations of numerical calculations, many standard solving techniques fail to produce accurate solutions if the system $A$ is ill-conditioned. In such a case, iterative refinement is commonly employed to increase the accuracy of the initial solution. Recently, it has been demonstrated that mixed-precision iterative refinement is capable of accurately solving systems up to a condition number of $\kappa_\infty(A) \leq 10^8$. Nonetheless, this algorithm requires a full factorization of the matrix $A$, resulting in a complexity of $\mathcal{O}(n^3)$. By making use of hierarchical low-rank approximations, that initial complexity can be reduced to $\mathcal{O}(n)$, resulting in a decreased runtime. A detailed performance comparison of both methods is provided in this research.
